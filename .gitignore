@@ -1,0 +1,49 @@
+# ---------- Node ----------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.npm/
+.pnpm-store/
+
+# ---------- Environment ----------
+.env
+.env.local
+.env.*.local
+
+# ---------- Editor ----------
+# Ignore everything in .vscode EXCEPT the two files we want to commit
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+
+# ---------- OS ----------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# ---------- Build / output ----------
+dist/
+build/
+out/
+*.log
+.cache/
+
+# ---------- Apps Script local cache ----------
+.clasp.json
+backend/.clasp.json
+
+# ---------- Temporary ----------
+tmp/
+temp/
+*.tmp

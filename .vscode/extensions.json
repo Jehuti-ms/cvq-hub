@@ -1,0 +1,11 @@
+{
+  "recommendations": [
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "ritwickdey.LiveServer",
+    "streetsidesoftware.code-spell-checker",
+    "labnol.google-apps-script",
+    "usernamehw.errorlens",
+    "christian-kohler.path-intellisense"
+  ]
+}

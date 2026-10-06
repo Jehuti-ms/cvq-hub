@@ -1,0 +1,21 @@
+{
+  "name": "cvq-hub",
+  "version": "0.1.0",
+  "description": "CVQ Hub — offline-first trainee progress & teacher effort tracker",
+  "private": true,
+  "type": "module",
+  "license": "UNLICENSED",
+  "author": "Your Name",
+  "scripts": {
+    "dev": "http-server public -p 5173 -c-1 --cors -o /landing.html",
+    "start": "http-server public -p 5173 -c-1 --cors",
+    "check-env": "node scripts/check-env.js",
+    "icons": "node scripts/generate-icons.js"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
