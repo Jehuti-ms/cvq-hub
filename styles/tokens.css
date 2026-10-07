@@ -1,0 +1,146 @@
+/* ==========================================================================
+   CVQ Hub — Design Tokens
+   All colors, spacing, sizes, and shadows live here.
+   Change a value here and it propagates through the whole app.
+   ========================================================================== */
+
+:root {
+  /* ---------- Brand colors ---------- */
+  --primary: #0f766e; /* teal-700 — CVQ Hub brand */
+  --primary-dark: #0b5a54;
+  --primary-light: #5ba99f;
+  --primary-pale: #e6f2f0;
+  --accent: #f59e0b; /* amber — highlights, teacher-effort */
+  --accent-pale: #fef3c7;
+
+  /* ---------- Semantic colors ---------- */
+  --success: #16a34a;
+  --success-pale: #dcfce7;
+  --warning: #ea580c;
+  --warning-pale: #ffedd5;
+  --danger: #dc2626;
+  --danger-pale: #fee2e2;
+  --info: #0284c7;
+  --info-pale: #e0f2fe;
+
+  /* ---------- Surface & background ---------- */
+  --background: #f5f7f9;
+  --surface: #ffffff;
+  --surface-alt: #f8fafb;
+  --surface-sunken: #eef2f5;
+
+  /* ---------- Borders ---------- */
+  --border: #e2e8ed;
+  --border-light: #eef2f5;
+  --border-strong: #cbd5e0;
+
+  /* ---------- Text ---------- */
+  --text: #0f172a;
+  --text-light: #64748b;
+  --text-muted: #94a3b8;
+  --text-inverse: #ffffff;
+
+  /* ---------- Spacing scale (4px base) ---------- */
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* ---------- Radii ---------- */
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  /* ---------- Shadows ---------- */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow: 0 2px 8px rgba(15, 23, 42, 0.07);
+  --shadow-lg: 0 8px 24px rgba(15, 23, 42, 0.12);
+  --shadow-xl: 0 20px 60px rgba(15, 23, 42, 0.18);
+
+  /* ---------- Typography ---------- */
+  --font:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'SF Mono', Monaco, Menlo, Consolas, 'Courier New', monospace;
+
+  --text-xs: 0.75rem; /* 12px */
+  --text-sm: 0.85rem; /* 13.6px */
+  --text-base: 0.95rem; /* 15.2px */
+  --text-md: 1rem; /* 16px */
+  --text-lg: 1.15rem; /* 18.4px */
+  --text-xl: 1.4rem; /* 22.4px */
+  --text-2xl: 1.75rem; /* 28px */
+  --text-3xl: 2rem; /* 32px */
+
+  --weight-normal: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.6;
+
+  /* ---------- Layout ---------- */
+  --content-max: 1200px;
+  --header-height: 64px;
+  --bottom-nav-height: 68px;
+  --fab-size: 56px;
+
+  /* ---------- Transitions ---------- */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.2s ease;
+  --transition-slow: 0.3s ease;
+
+  /* ---------- Z-index scale ---------- */
+  --z-header: 50;
+  --z-bottom-nav: 40;
+  --z-fab: 45;
+  --z-modal: 100;
+  --z-toast: 200;
+}
+
+/* ==========================================================================
+   Dark theme override
+   Activated by [data-theme="dark"] on <html> or <body>
+   ========================================================================== */
+
+[data-theme='dark'] {
+  /* Brand stays teal — good contrast on dark surfaces */
+  --primary-pale: #0f2a28;
+  --accent-pale: #3a2a10;
+
+  /* Surfaces flip */
+  --background: #0d1219;
+  --surface: #161d27;
+  --surface-alt: #1d2632;
+  --surface-sunken: #0a0e14;
+
+  --border: #263140;
+  --border-light: #1e2733;
+  --border-strong: #3a4658;
+
+  --text: #e8eef4;
+  --text-light: #9aa8b8;
+  --text-muted: #64748b;
+  --text-inverse: #0d1219;
+
+  /* Semantic colours adjusted for dark readability */
+  --success-pale: #0f2a1a;
+  --warning-pale: #3a2410;
+  --danger-pale: #3a1014;
+  --info-pale: #0f2438;
+
+  /* Shadows deepen */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.55);
+}

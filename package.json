@@ -5,10 +5,10 @@
   "private": true,
   "type": "module",
   "license": "UNLICENSED",
-  "author": "Your Name",
+  "author": "Hivematrix",
   "scripts": {
-    "dev": "http-server public -p 5173 -c-1 --cors -o /landing.html",
-    "start": "http-server public -p 5173 -c-1 --cors",
+    "dev": "http-server . -p 5173 -c-1 --cors -o /landing.html",
+    "start": "http-server . -p 5173 -c-1 --cors",
     "check-env": "node scripts/check-env.js",
     "icons": "node scripts/generate-icons.js"
   },
