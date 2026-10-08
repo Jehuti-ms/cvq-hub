@@ -437,23 +437,142 @@
     <main class="container">
       <!-- ========== TRAINEES ========== -->
       <section id="trainees" class="tabcontent active" role="tabpanel">
-        <div class="tab-placeholder">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-            <circle cx="9" cy="7" r="4" />
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-          </svg>
-          <h2>Trainees</h2>
-          <p>Add and manage the trainees enrolled in your classes.</p>
-          <span class="badge neutral">Coming next</span>
+        <!-- Section header -->
+        <div class="section-header">
+          <h2>👥 Trainees</h2>
+          <div class="student-stats">
+            <span class="stat-badge" id="traineeCount">0</span>
+            <span class="stat-text">enrolled</span>
+          </div>
+        </div>
+
+        <!-- Class guard banner -->
+        <div class="section-card" id="noClassBanner" style="display: none">
+          <div style="text-align: center; padding: 20px 10px">
+            <svg
+              width="48"
+              height="48"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="var(--primary)"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              style="margin: 0 auto 12px"
+            >
+              <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+              <path d="M6 12v5c3 3 9 3 12 0v-5" />
+            </svg>
+            <h3 style="margin-bottom: 8px">Create a class first</h3>
+            <p
+              style="
+                color: var(--text-light);
+                margin-bottom: 16px;
+                max-width: 400px;
+                margin-left: auto;
+                margin-right: auto;
+              "
+            >
+              Trainees belong to a class. Create your first class to get started.
+            </p>
+            <button class="button primary" id="createFirstClassBtn" type="button">
+              ➕ Create a class
+            </button>
+          </div>
+        </div>
+
+        <!-- Trainees list card -->
+        <div class="section-card" id="traineeListCard" style="display: none">
+          <div class="section-header" style="margin-bottom: 12px">
+            <h3 style="margin: 0">📋 Enrolled trainees</h3>
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap">
+              <input
+                type="search"
+                id="traineeSearch"
+                placeholder="🔍 Search…"
+                style="
+                  padding: 8px 12px;
+                  border: 1px solid var(--border);
+                  border-radius: var(--radius-sm);
+                  font-size: var(--text-sm);
+                  min-width: 160px;
+                "
+              />
+              <button class="button primary" id="addTraineeBtn" type="button">
+                ➕ Add trainee
+              </button>
+            </div>
+          </div>
+          <div id="traineeList">
+            <p class="empty-message">Loading…</p>
+          </div>
+        </div>
+
+        <!-- ========== TRAINEE MODAL ========== -->
+        <div
+          class="modal"
+          id="traineeModal"
+          style="display: none"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="traineeModalTitle"
+        >
+          <div class="modal-content">
+            <div class="modal-header">
+              <h2 id="traineeModalTitle">➕ Add Trainee</h2>
+              <button class="close" id="traineeModalClose" type="button" aria-label="Close">
+                &times;
+              </button>
+            </div>
+            <div class="modal-body">
+              <form id="traineeForm">
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label for="traineeName">Full name *</label>
+                    <input type="text" id="traineeName" required autocomplete="off" />
+                  </div>
+                  <div class="form-group">
+                    <label for="traineeStudentId">Trainee ID *</label>
+                    <input
+                      type="text"
+                      id="traineeStudentId"
+                      required
+                      autocomplete="off"
+                      placeholder="e.g., CVQ-2025-001"
+                    />
+                    <small class="help-text">Auto-generated. You can change it if needed.</small>
+                  </div>
+                  <div class="form-group">
+                    <label for="traineeGender">Gender</label>
+                    <select id="traineeGender">
+                      <option value="">Select…</option>
+                      <option>Male</option>
+                      <option>Female</option>
+                      <option>Other</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="traineeEmail">Email</label>
+                    <input type="email" id="traineeEmail" autocomplete="off" />
+                  </div>
+                  <div class="form-group">
+                    <label for="traineePhone">Phone</label>
+                    <input type="tel" id="traineePhone" autocomplete="off" />
+                  </div>
+                  <div class="form-group">
+                    <label for="traineeNotes">Notes</label>
+                    <input type="text" id="traineeNotes" autocomplete="off" />
+                  </div>
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="button secondary" id="traineeCancelBtn">Cancel</button>
+              <button type="submit" class="button primary" id="traineeSubmitBtn" form="traineeForm">
+                💾 Save trainee
+              </button>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -964,6 +1083,11 @@
         '| Demo:',
         localStorage.getItem('cvq_demo') === 'true'
       );
+
+      // ---------- Boot feature tabs ----------
+      const { init: initTrainees } = await import('/src/ui/tabs/trainees.js');
+      await initTrainees();
+      console.log('[dashboard] Trainees tab booted');
     </script>
   </body>
 </html>
