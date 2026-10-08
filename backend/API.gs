@@ -177,8 +177,28 @@ function route_(action, body, user, role) {
 // CRUD HANDLERS
 // ============================================================================
 
+// ---------- Sheet name mapping (action suffix → sheet name) ----------
+
+function actionToSheet_(action) {
+  const key = action.replace(/^(create|update|delete)/, '');
+  const map = {
+    Class: 'Classes',
+    Student: 'Students',
+    Worklog: 'Worklogs',
+    Mark: 'Marks',
+    Attendance: 'Attendance',
+    Semester: 'Semesters',
+    Media: 'Media',
+  };
+  const sheetName = map[key];
+  if (!sheetName) throw new Error('Unknown sheet for action: ' + action);
+  return sheetName;
+}
+
+// ---------- CRUD HANDLERS ----------
+
 function handleCreate_(action, body, user) {
-  const sheetName = action.replace('create', '');
+  const sheetName = actionToSheet_(action);
   const payload = { ...body, teacherId: user.uid };
   delete payload.action;
   delete payload.idToken;
@@ -190,7 +210,7 @@ function handleCreate_(action, body, user) {
 }
 
 function handleUpdate_(action, body, user, isCoordinator) {
-  const sheetName = action.replace('update', '');
+  const sheetName = actionToSheet_(action);
   const existing = findRow_(sheetName, (r) => String(r.id) === String(body.id));
 
   if (!existing) throw new Error('Not found: ' + body.id);
@@ -202,7 +222,7 @@ function handleUpdate_(action, body, user, isCoordinator) {
 }
 
 function handleDelete_(action, body, user, isCoordinator) {
-  const sheetName = action.replace('delete', '');
+  const sheetName = actionToSheet_(action);
   const existing = findRow_(sheetName, (r) => String(r.id) === String(body.id));
 
   if (!existing) throw new Error('Not found: ' + body.id);
