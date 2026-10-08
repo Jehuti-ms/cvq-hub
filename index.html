@@ -818,22 +818,197 @@
 
       <!-- ========== MARKS ========== -->
       <section id="marks" class="tabcontent" role="tabpanel">
-        <div class="tab-placeholder">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <line x1="18" y1="20" x2="18" y2="10" />
-            <line x1="12" y1="20" x2="12" y2="4" />
-            <line x1="6" y1="20" x2="6" y2="14" />
-          </svg>
-          <h2>Marks &amp; Assessments</h2>
-          <p>Record assessment scores per unit and topic, with automatic percentages and grades.</p>
-          <span class="badge neutral">Coming next</span>
+        <!-- Header -->
+        <div class="section-header">
+          <h2>📊 Marks &amp; Assessments</h2>
+          <div class="student-stats">
+            <span class="stat-badge" id="marksCount">0</span>
+            <span class="stat-text">recorded · avg <span id="marksAvg">—</span></span>
+          </div>
+        </div>
+
+        <!-- No-class banner -->
+        <div class="section-card" id="marksNoClass" style="display: none">
+          <div style="text-align: center; padding: 20px 10px">
+            <svg
+              width="48"
+              height="48"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="var(--primary)"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              style="margin: 0 auto 12px"
+            >
+              <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+              <path d="M6 12v5c3 3 9 3 12 0v-5" />
+            </svg>
+            <h3 style="margin-bottom: 8px">No class selected</h3>
+            <p style="color: var(--text-light); max-width: 400px; margin: 0 auto">
+              Select a class from the picker at the top to see and record assessments.
+            </p>
+          </div>
+        </div>
+
+        <!-- Marks list card -->
+        <div class="section-card" id="marksListCard" style="display: none">
+          <div class="section-header" style="margin-bottom: 12px">
+            <h3 style="margin: 0">📋 Assessment log</h3>
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap">
+              <input
+                type="search"
+                id="marksSearch"
+                placeholder="🔍 Search…"
+                style="
+                  padding: 8px 12px;
+                  border: 1px solid var(--border);
+                  border-radius: var(--radius-sm);
+                  font-size: var(--text-sm);
+                  min-width: 160px;
+                "
+              />
+              <select
+                id="marksFilterTrainee"
+                style="
+                  padding: 8px 12px;
+                  border: 1px solid var(--border);
+                  border-radius: var(--radius-sm);
+                  font-size: var(--text-sm);
+                "
+              >
+                <option value="">All trainees</option>
+              </select>
+              <button class="button primary" id="addMarkBtn" type="button">➕ Add mark</button>
+            </div>
+          </div>
+          <div id="marksList">
+            <p class="empty-message">Loading…</p>
+          </div>
+        </div>
+
+        <!-- ========== MARKS MODAL ========== -->
+        <div
+          class="modal"
+          id="marksModal"
+          style="display: none"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="marksModalTitle"
+        >
+          <div class="modal-content" style="max-width: 560px">
+            <div class="modal-header">
+              <h2 id="marksModalTitle">➕ Add Mark</h2>
+              <button class="close" id="marksModalClose" type="button" aria-label="Close">
+                &times;
+              </button>
+            </div>
+            <div class="modal-body">
+              <form id="marksForm">
+                <div class="form-group">
+                  <label for="marksTrainee">Trainee *</label>
+                  <select id="marksTrainee" required>
+                    <option value="">Select a trainee…</option>
+                  </select>
+                </div>
+
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label for="marksDate">Date *</label>
+                    <input type="date" id="marksDate" required />
+                  </div>
+                  <div class="form-group">
+                    <label for="marksTopic">Topic / Task *</label>
+                    <input
+                      type="text"
+                      id="marksTopic"
+                      required
+                      autocomplete="off"
+                      placeholder="e.g., Client consultation"
+                    />
+                  </div>
+                </div>
+
+                <!-- Unit dropdown with "Other..." -->
+                <div class="form-group">
+                  <label for="marksUnit">Unit / Module *</label>
+                  <select id="marksUnit" required>
+                    <option value="">Select a unit…</option>
+                    <optgroup label="Common units" id="marksUnitCommon">
+                      <option value="CVQ-COS-101">CVQ-COS-101 — Introduction to Cosmetology</option>
+                      <option value="CVQ-COS-201">CVQ-COS-201 — Client Consultation</option>
+                      <option value="CVQ-COS-202">CVQ-COS-202 — Hair Styling</option>
+                      <option value="CVQ-COS-203">CVQ-COS-203 — Skin Care</option>
+                      <option value="CVQ-COS-204">CVQ-COS-204 — Nail Technology</option>
+                      <option value="CVQ-BAR-101">CVQ-BAR-101 — Barbering Basics</option>
+                      <option value="CVQ-CUL-101">CVQ-CUL-101 — Culinary Fundamentals</option>
+                    </optgroup>
+                    <optgroup label="Your custom units" id="marksUnitCustom"></optgroup>
+                    <option value="__other__">✏️ Other (type your own)…</option>
+                  </select>
+                  <input
+                    type="text"
+                    id="marksUnitCustom"
+                    style="display: none; margin-top: 8px"
+                    placeholder="Type your unit code or name…"
+                    autocomplete="off"
+                  />
+                </div>
+
+                <div class="form-grid-3">
+                  <div class="form-group">
+                    <label for="marksScore">Score *</label>
+                    <input type="number" id="marksScore" step="0.1" min="0" required />
+                  </div>
+                  <div class="form-group">
+                    <label for="marksMax">Max score *</label>
+                    <input type="number" id="marksMax" step="0.1" min="0.1" value="100" required />
+                  </div>
+                  <div class="form-group">
+                    <label for="marksNotes">Notes</label>
+                    <input type="text" id="marksNotes" autocomplete="off" placeholder="Optional" />
+                  </div>
+                </div>
+
+                <!-- Live preview -->
+                <div
+                  id="marksPreview"
+                  style="
+                    display: none;
+                    padding: 12px;
+                    background: var(--surface-alt);
+                    border-radius: var(--radius);
+                    margin-top: 8px;
+                  "
+                >
+                  <div style="display: flex; justify-content: space-between; align-items: center">
+                    <span style="font-size: var(--text-sm); color: var(--text-light)"
+                      >Auto-calculated:</span
+                    >
+                    <span style="display: flex; gap: 12px; align-items: center">
+                      <strong
+                        id="marksPreviewPct"
+                        style="color: var(--primary); font-size: var(--text-lg)"
+                        >—</strong
+                      >
+                      <span
+                        id="marksPreviewGrade"
+                        class="badge"
+                        style="font-size: var(--text-base); padding: 4px 12px"
+                        >—</span
+                      >
+                    </span>
+                  </div>
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="button secondary" id="marksCancelBtn">Cancel</button>
+              <button type="submit" class="button primary" id="marksSubmitBtn" form="marksForm">
+                💾 Save mark
+              </button>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -1450,6 +1625,10 @@
       const { init: initWorklog } = await import('/src/ui/tabs/worklog.js');
       await initWorklog();
       console.log('[dashboard] Worklog tab booted');
+
+      const { init: initMarks } = await import('/src/ui/tabs/marks.js');
+      await initMarks();
+      console.log('[dashboard] Marks tab booted');
     </script>
   </body>
 </html>
