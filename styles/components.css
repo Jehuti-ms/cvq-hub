@@ -988,3 +988,75 @@ button[type='submit']:disabled {
   background: var(--border-light);
   margin: 4px 0;
 }
+
+/* ==========================================================================
+   Evidence capture widget
+   ========================================================================== */
+
+.evidence-capture {
+  padding: 4px 0;
+}
+
+.evidence-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.evidence-card {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  transition: transform var(--transition-fast);
+}
+
+.evidence-card:hover {
+  transform: scale(1.02);
+}
+
+.evidence-card img,
+.evidence-card video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.evidence-card .badge {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border-radius: 0;
+  background: rgba(0, 0, 0, 0.65);
+  color: white;
+  font-size: 0.7rem;
+  padding: 4px 6px;
+  text-align: center;
+  font-weight: var(--weight-medium);
+}
+
+.evidence-card.pending {
+  opacity: 0.75;
+}
+
+.evidence-card.error .badge {
+  background: var(--danger);
+}
+
+.evidence-status {
+  font-size: var(--text-xs);
+  color: var(--text-light);
+  margin-top: 4px;
+}

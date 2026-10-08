@@ -617,23 +617,202 @@
 
       <!-- ========== WORKLOG ========== -->
       <section id="worklog" class="tabcontent" role="tabpanel">
-        <div class="tab-placeholder">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-            <polyline points="14 2 14 8 20 8" />
-            <line x1="16" y1="13" x2="8" y2="13" />
-            <line x1="16" y1="17" x2="8" y2="17" />
-          </svg>
-          <h2>Worklog</h2>
-          <p>Log sessions with topics, outcomes, and photo or video evidence.</p>
-          <span class="badge neutral">Coming next</span>
+        <!-- Section header -->
+        <div class="section-header">
+          <h2>📝 Worklog</h2>
+          <div class="student-stats">
+            <span class="stat-badge" id="worklogCount">0</span>
+            <span class="stat-text">sessions</span>
+          </div>
+        </div>
+
+        <!-- No-class banner -->
+        <div class="section-card" id="worklogNoClass" style="display: none">
+          <div style="text-align: center; padding: 20px 10px">
+            <svg
+              width="48"
+              height="48"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="var(--primary)"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              style="margin: 0 auto 12px"
+            >
+              <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+              <path d="M6 12v5c3 3 9 3 12 0v-5" />
+            </svg>
+            <h3 style="margin-bottom: 8px">No class selected</h3>
+            <p style="color: var(--text-light); max-width: 400px; margin: 0 auto">
+              Select or create a class from the picker at the top before logging sessions.
+            </p>
+          </div>
+        </div>
+
+        <!-- Worklog list card -->
+        <div class="section-card" id="worklogListCard" style="display: none">
+          <div class="section-header" style="margin-bottom: 12px">
+            <h3 style="margin: 0">📋 Session log</h3>
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap">
+              <input
+                type="search"
+                id="worklogSearch"
+                placeholder="🔍 Search…"
+                style="
+                  padding: 8px 12px;
+                  border: 1px solid var(--border);
+                  border-radius: var(--radius-sm);
+                  font-size: var(--text-sm);
+                  min-width: 160px;
+                "
+              />
+              <button class="button primary" id="addWorklogBtn" type="button">
+                ➕ Log session
+              </button>
+            </div>
+          </div>
+          <div id="worklogList">
+            <p class="empty-message">Loading…</p>
+          </div>
+        </div>
+
+        <!-- ========== WORKLOG MODAL ========== -->
+        <div
+          class="modal"
+          id="worklogModal"
+          style="display: none"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="worklogModalTitle"
+        >
+          <div class="modal-content" style="max-width: 640px">
+            <div class="modal-header">
+              <h2 id="worklogModalTitle">➕ Log Session</h2>
+              <button class="close" id="worklogModalClose" type="button" aria-label="Close">
+                &times;
+              </button>
+            </div>
+            <div class="modal-body">
+              <form id="worklogForm">
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label for="worklogDate">Date *</label>
+                    <input type="date" id="worklogDate" required />
+                  </div>
+                  <div class="form-group">
+                    <label for="worklogType">Session type</label>
+                    <select id="worklogType">
+                      <option value="trainee">👤 One-on-one trainee</option>
+                      <option value="group">👥 Group session</option>
+                      <option value="admin">🗂️ Admin / prep</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-group" id="worklogTraineeGroup">
+                  <label for="worklogTrainee">Trainee *</label>
+                  <select id="worklogTrainee">
+                    <option value="">Select a trainee…</option>
+                  </select>
+                </div>
+
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label for="worklogUnit">Unit / Module *</label>
+                    <input
+                      type="text"
+                      id="worklogUnit"
+                      required
+                      autocomplete="off"
+                      placeholder="e.g., CVQ-COS-201"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="worklogTopic">Topic / Outcome *</label>
+                    <input
+                      type="text"
+                      id="worklogTopic"
+                      required
+                      autocomplete="off"
+                      placeholder="e.g., Client consultation"
+                    />
+                  </div>
+                </div>
+
+                <div class="form-grid-3">
+                  <div class="form-group">
+                    <label for="worklogDuration">Duration (hours) *</label>
+                    <input
+                      type="number"
+                      id="worklogDuration"
+                      step="0.25"
+                      min="0.25"
+                      max="24"
+                      value="1"
+                      required
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="worklogSessions">Sessions</label>
+                    <input type="number" id="worklogSessions" min="1" max="20" value="1" />
+                  </div>
+                  <div class="form-group">
+                    <label for="worklogTraineesCount">Trainees present</label>
+                    <input type="number" id="worklogTraineesCount" min="0" max="100" value="1" />
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="worklogDescription">Description *</label>
+                  <textarea
+                    id="worklogDescription"
+                    rows="3"
+                    required
+                    placeholder="What was covered in this session…"
+                  ></textarea>
+                </div>
+
+                <div class="form-group">
+                  <label for="worklogOutcomes">Learning outcomes achieved</label>
+                  <textarea
+                    id="worklogOutcomes"
+                    rows="2"
+                    placeholder="What trainees can now do…"
+                  ></textarea>
+                </div>
+
+                <div class="form-group">
+                  <label for="worklogNextSteps">Next steps / follow-up</label>
+                  <textarea
+                    id="worklogNextSteps"
+                    rows="2"
+                    placeholder="What to cover next time…"
+                  ></textarea>
+                </div>
+
+                <div class="form-group">
+                  <label for="worklogNotes">Additional notes</label>
+                  <textarea id="worklogNotes" rows="2" placeholder="Anything else…"></textarea>
+                </div>
+
+                <div class="form-group">
+                  <label>Evidence (photos / videos)</label>
+                  <div id="worklogEvidence"></div>
+                  <small class="help-text"
+                    >Capture photos or short videos to document the session. Files are stored in
+                    Google Drive and linked to this entry.</small
+                  >
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="button secondary" id="worklogCancelBtn">Cancel</button>
+              <button type="submit" class="button primary" id="worklogSubmitBtn" form="worklogForm">
+                💾 Save session
+              </button>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -1267,6 +1446,10 @@
       const { init: initTrainees } = await import('/src/ui/tabs/trainees.js');
       await initTrainees();
       console.log('[dashboard] Trainees tab booted');
+
+      const { init: initWorklog } = await import('/src/ui/tabs/worklog.js');
+      await initWorklog();
+      console.log('[dashboard] Worklog tab booted');
     </script>
   </body>
 </html>
