@@ -7,6 +7,7 @@
 
 import { api } from '../../api/client.js';
 import { toast } from '../toast.js';
+import { getActiveClassId, onClassChange } from '../classModal.js';
 
 // ---------- Module state ----------
 let trainees = [];
@@ -77,7 +78,20 @@ function wireEvents() {
 
   // Add button → open modal in "new" mode
   if (els.addBtn) els.addBtn.addEventListener('click', () => openModal());
-  if (els.createFirstClassBtn) els.createFirstClassBtn.addEventListener('click', promptCreateClass);
+  if (els.createFirstClassBtn) {
+    els.createFirstClassBtn.addEventListener('click', async () => {
+      const { openCreateModal } = await import('../classModal.js');
+      openCreateModal();
+    });
+  }
+
+  // React to class changes from the picker
+  onClassChange(async (cls) => {
+    activeClassId = cls ? cls.id : null;
+    updateVisibility();
+    if (activeClassId) await loadTrainees();
+    else if (els.count) els.count.textContent = '0';
+  });
 
   // Modal close paths
   if (els.modalClose) els.modalClose.addEventListener('click', closeModal);
@@ -115,7 +129,7 @@ function wireEvents() {
 // ============================================================================
 
 async function refresh() {
-  activeClassId = localStorage.getItem('cvq_activeClass') || null;
+  activeClassId = getActiveClassId();
   updateVisibility();
   if (activeClassId) await loadTrainees();
   else if (els.count) els.count.textContent = '0';

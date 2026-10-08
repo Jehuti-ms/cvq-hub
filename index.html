@@ -318,11 +318,50 @@
 
     <!-- ======================= CLASS BAR ======================= -->
     <div class="class-bar" id="classBar">
-      <button class="class-picker empty" id="classPickerBtn" type="button">
-        <span>📚</span>
-        <span id="activeClassName">No class selected</span>
-        <span style="font-size: 0.7rem">▾</span>
-      </button>
+      <div style="position: relative">
+        <button
+          class="class-picker empty"
+          id="classPickerBtn"
+          type="button"
+          aria-haspopup="menu"
+          aria-expanded="false"
+        >
+          <span>📚</span>
+          <span id="activeClassName">No class selected</span>
+          <span style="font-size: 0.7rem">▾</span>
+        </button>
+
+        <!-- Class picker dropdown -->
+        <div class="class-dropdown" id="classDropdown" role="menu">
+          <div class="class-dropdown-header">Your classes</div>
+          <div class="class-dropdown-list" id="classDropdownList">
+            <div class="class-dropdown-empty">No classes yet</div>
+          </div>
+          <div class="class-dropdown-divider"></div>
+          <button class="class-dropdown-item" id="classDropdownNew" type="button">
+            <span>➕</span>
+            <span>Create new class</span>
+          </button>
+          <button
+            class="class-dropdown-item"
+            id="classDropdownEdit"
+            type="button"
+            style="display: none"
+          >
+            <span>⚙️</span>
+            <span>Edit current class</span>
+          </button>
+          <button
+            class="class-dropdown-item danger"
+            id="classDropdownDelete"
+            type="button"
+            style="display: none"
+          >
+            <span>🗑️</span>
+            <span>Delete current class</span>
+          </button>
+        </div>
+      </div>
       <span class="class-meta" id="classMeta"></span>
     </div>
 
@@ -680,6 +719,120 @@
           <span class="badge neutral">Coming next</span>
         </div>
       </section>
+
+      <!-- ======================= CLASS MODAL ======================= -->
+      <div
+        class="modal"
+        id="classModal"
+        style="display: none"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="classModalTitle"
+      >
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2 id="classModalTitle">➕ Create a class</h2>
+            <button class="close" id="classModalClose" type="button" aria-label="Close">
+              &times;
+            </button>
+          </div>
+          <div class="modal-body">
+            <form id="classForm">
+              <div class="form-group">
+                <label for="className">Class name *</label>
+                <input
+                  type="text"
+                  id="className"
+                  required
+                  autocomplete="off"
+                  placeholder="e.g., Cosmetology Level 2"
+                />
+              </div>
+              <div class="form-group">
+                <label for="classSubject">Subject / area</label>
+                <input
+                  type="text"
+                  id="classSubject"
+                  autocomplete="off"
+                  placeholder="e.g., Cosmetology"
+                />
+                <small class="help-text"
+                  >Used to generate trainee IDs (first 3 letters). E.g., "Cosmetology" →
+                  COS-2025-001.</small
+                >
+              </div>
+              <div class="form-group">
+                <label for="classDescription">Description</label>
+                <textarea
+                  id="classDescription"
+                  rows="2"
+                  placeholder="Optional notes about this class…"
+                ></textarea>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="button secondary" id="classCancelBtn">Cancel</button>
+            <button type="submit" class="button primary" id="classSubmitBtn" form="classForm">
+              💾 Save class
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======================= ONBOARDING MODAL (first run) ======================= -->
+      <div
+        class="modal"
+        id="onboardingModal"
+        style="display: none"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="onboardingTitle"
+      >
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2 id="onboardingTitle">👋 Welcome to CVQ Hub</h2>
+          </div>
+          <div class="modal-body">
+            <p style="margin-bottom: 16px; color: var(--text-light); line-height: 1.6">
+              Let's set up your first class. You can add trainees, log sessions, and record
+              assessments under this class.
+            </p>
+            <form id="onboardingForm">
+              <div class="form-group">
+                <label for="onboardingClassName">Class name *</label>
+                <input
+                  type="text"
+                  id="onboardingClassName"
+                  required
+                  autocomplete="off"
+                  placeholder="e.g., Cosmetology Level 2"
+                />
+              </div>
+              <div class="form-group">
+                <label for="onboardingSubject">Subject / area</label>
+                <input
+                  type="text"
+                  id="onboardingSubject"
+                  autocomplete="off"
+                  placeholder="e.g., Cosmetology"
+                />
+                <small class="help-text">Used for generating trainee IDs.</small>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="submit"
+              class="button primary btn-full"
+              id="onboardingSubmitBtn"
+              form="onboardingForm"
+            >
+              Get started →
+            </button>
+          </div>
+        </div>
+      </div>
     </main>
 
     <!-- ======================= MOBILE BOTTOM NAV ======================= -->
@@ -865,6 +1018,35 @@
         throw new Error('redirecting');
       }
 
+      // Check token expiry (demo tokens don't expire)
+      if (!token.startsWith('demo-token-')) {
+        try {
+          const payload = JSON.parse(
+            atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))
+          );
+          const now = Math.floor(Date.now() / 1000);
+          if (payload.exp && payload.exp < now) {
+            console.warn('[dashboard] Token expired — redirecting to auth');
+            localStorage.removeItem('cvq_idToken');
+            localStorage.removeItem('cvq_user');
+            localStorage.removeItem('cvq_signedInAt');
+            const params = new URLSearchParams({
+              reason: 'expired',
+              msg: 'Your session expired. Please sign in again.',
+            });
+            window.location.replace('auth.html?' + params.toString());
+            throw new Error('redirecting');
+          }
+        } catch (e) {
+          // Malformed token — treat as expired
+          console.warn('[dashboard] Malformed token — redirecting to auth');
+          localStorage.removeItem('cvq_idToken');
+          localStorage.removeItem('cvq_user');
+          window.location.replace('auth.html');
+          throw new Error('redirecting');
+        }
+      }
+
       let user;
       try {
         user = JSON.parse(userRaw);
@@ -1040,14 +1222,6 @@
         );
       });
 
-      // ---------- Class picker (placeholder until backend) ----------
-      document.getElementById('classPickerBtn').addEventListener('click', () => {
-        alert(
-          'No classes yet.\n\n' +
-            'Once the backend is connected, this button will let you create and switch between classes.'
-        );
-      });
-
       // ---------- Offline/online banner ----------
       const offlineBanner = document.getElementById('offlineBanner');
 
@@ -1084,7 +1258,12 @@
         localStorage.getItem('cvq_demo') === 'true'
       );
 
-      // ---------- Boot feature tabs ----------
+      // ---------- Boot class management first ----------
+      const { init: initClassModal } = await import('/src/ui/classModal.js');
+      await initClassModal();
+      console.log('[dashboard] Class manager booted');
+
+      // ---------- Then feature tabs ----------
       const { init: initTrainees } = await import('/src/ui/tabs/trainees.js');
       await initTrainees();
       console.log('[dashboard] Trainees tab booted');

@@ -893,3 +893,98 @@ button[type='submit']:disabled {
   flex: 1;
   min-width: 0;
 }
+
+/* ==========================================================================
+   Class picker dropdown
+   ========================================================================== */
+
+.class-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 260px;
+  max-width: 320px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  z-index: 60;
+  overflow: hidden;
+  display: none;
+}
+
+.class-dropdown.open {
+  display: block;
+}
+
+.class-dropdown-header {
+  padding: 10px 14px;
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-light);
+  font-weight: var(--weight-medium);
+  background: var(--surface-alt);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.class-dropdown-list {
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.class-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  font-size: var(--text-base);
+  color: var(--text);
+  cursor: pointer;
+  border-radius: 0;
+  min-height: auto;
+  font-weight: var(--weight-normal);
+  transition: background var(--transition-fast);
+}
+
+.class-dropdown-item:hover {
+  background: var(--surface-alt);
+}
+
+.class-dropdown-item.active {
+  background: var(--primary-pale);
+  color: var(--primary);
+  font-weight: var(--weight-medium);
+}
+
+.class-dropdown-item.active::after {
+  content: '✓';
+  margin-left: auto;
+  color: var(--primary);
+  font-weight: var(--weight-bold);
+}
+
+.class-dropdown-item.danger {
+  color: var(--danger);
+}
+
+.class-dropdown-item.danger:hover {
+  background: var(--danger-pale);
+}
+
+.class-dropdown-empty {
+  padding: 16px 14px;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+.class-dropdown-divider {
+  height: 1px;
+  background: var(--border-light);
+  margin: 4px 0;
+}

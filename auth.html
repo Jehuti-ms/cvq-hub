@@ -382,6 +382,21 @@
         ERROR_BOX.innerHTML = '';
       }
 
+      // ------------------------------------------------------------
+      // Show session-expired message if redirected from the app
+      // ------------------------------------------------------------
+      (function showRedirectMessage() {
+        const params = new URLSearchParams(window.location.search);
+        const reason = params.get('reason');
+        const msg = params.get('msg');
+
+        if (reason === 'expired' && msg) {
+          showError('Session expired', msg);
+          // Clean the URL so it doesn't persist on refresh
+          window.history.replaceState({}, '', 'auth.html');
+        }
+      })();
+
       function showLoading() {
         LOADING.classList.add('visible');
       }

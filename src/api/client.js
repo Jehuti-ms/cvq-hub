@@ -10,6 +10,7 @@
 // Leave blank to stay in mock mode.
 const APPS_SCRIPT_URL =
   'https://script.google.com/macros/s/AKfycbyHfRJDq6U24FtMfHihS1ZtEU41hApq9Uw5dWLmze8qYEe-ZemMkxG68D3-FtXxbw3u/exec';
+const AUTH_URL = 'auth.html';
 const MOCK = !APPS_SCRIPT_URL;
 const MOCK_KEY = 'cvq_mock_db';
 
@@ -142,7 +143,10 @@ export const api = {
 
     // ----- Real mode -----
     const idToken = localStorage.getItem('cvq_idToken');
-    if (!idToken) throw new Error('Not authenticated');
+    if (!idToken) {
+      handleSessionExpired('You need to sign in.');
+      throw new Error('Not authenticated');
+    }
 
     const isWrite = /^(create|update|delete|upload)/.test(action);
 
@@ -158,14 +162,25 @@ export const api = {
       return { queued: true, id: item.id };
     }
 
-    const res = await fetch(APPS_SCRIPT_URL, {
-      method: 'POST',
-      // text/plain avoids CORS preflight with Apps Script
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action, idToken, ...body }),
-    });
+    let res, json;
+    try {
+      res = await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action, idToken, ...body }),
+      });
+      json = await res.json();
+    } catch (networkErr) {
+      // Network failure (no internet, server unreachable)
+      throw new Error('Network error: ' + networkErr.message);
+    }
 
-    const json = await res.json();
+    // ----- Session expired? -----
+    if (!json.ok && /Invalid ID token|Missing idToken/i.test(json.error || '')) {
+      handleSessionExpired('Your session expired. Please sign in again.');
+      throw new Error('Session expired');
+    }
+
     if (!json.ok) throw new Error(json.error || 'API error');
     return json.data;
   },
@@ -246,6 +261,33 @@ function fileToBase64(file) {
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
+}
+
+// ============================================================================
+// SESSION EXPIRY HANDLING
+// ============================================================================
+
+let sessionExpiredHandled = false;
+
+function handleSessionExpired(message = 'Your session expired. Please sign in again.') {
+  if (sessionExpiredHandled) return;
+  sessionExpiredHandled = true;
+
+  console.warn('[api] Session expired — clearing and redirecting');
+
+  // Clear the session
+  localStorage.removeItem('cvq_idToken');
+  localStorage.removeItem('cvq_user');
+  localStorage.removeItem('cvq_signedInAt');
+  localStorage.removeItem('cvq_demo');
+
+  // Show a friendly message via the URL
+  const params = new URLSearchParams({ reason: 'expired', msg: message });
+
+  // Small delay so any in-flight operations settle
+  setTimeout(() => {
+    window.location.replace(`${AUTH_URL}?${params.toString()}`);
+  }, 300);
 }
 
 // ============================================================================
