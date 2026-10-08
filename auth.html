@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+    <meta name="description" content="Sign in to CVQ Hub" />
+    <meta name="theme-color" content="#0f766e" />
+    <title>Sign in — CVQ Hub</title>
+    <link rel="icon" type="image/png" sizes="96x96" href="icons/favicon-96x96.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png" />
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="stylesheet" href="styles/main.css" />
+
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+    <style>
+      /* =========================================================
+       Auth-page-only styles
+       ========================================================= */
+
+      body {
+        background: linear-gradient(160deg, #0f766e 0%, #0b5a54 55%, #063d38 100%);
+        min-height: 100vh;
+        min-height: 100dvh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: var(--space-5);
+        position: relative;
+        overflow: hidden;
+      }
+
+      /* Decorative blurred circles */
+      body::before,
+      body::after {
+        content: '';
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(80px);
+        pointer-events: none;
+      }
+      body::before {
+        width: 420px;
+        height: 420px;
+        top: -120px;
+        left: -120px;
+        background: rgba(245, 158, 11, 0.18);
+      }
+      body::after {
+        width: 380px;
+        height: 380px;
+        bottom: -140px;
+        right: -100px;
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .auth-card {
+        position: relative;
+        z-index: 1;
+        background: white;
+        border-radius: var(--radius-lg);
+        padding: var(--space-8) var(--space-6);
+        max-width: 420px;
+        width: 100%;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.28);
+      }
+
+      @media (min-width: 480px) {
+        .auth-card {
+          padding: var(--space-10) var(--space-8);
+        }
+      }
+
+      .auth-logo {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 64px;
+        height: 64px;
+        background: var(--primary-pale);
+        color: var(--primary);
+        border-radius: var(--radius);
+        margin: 0 auto var(--space-4);
+      }
+
+      .auth-logo svg {
+        width: 32px;
+        height: 32px;
+      }
+
+      .auth-card h1 {
+        font-size: var(--text-2xl);
+        font-weight: var(--weight-bold);
+        color: var(--text);
+        margin-bottom: var(--space-2);
+        letter-spacing: -0.02em;
+      }
+
+      .auth-card .subtitle {
+        font-size: var(--text-md);
+        color: var(--text-light);
+        margin-bottom: var(--space-6);
+        line-height: var(--leading-relaxed);
+      }
+
+      /* Google button container — GIS injects an iframe here */
+      #g_id_onload {
+        display: none;
+      }
+
+      .g_id_signin {
+        display: flex;
+        justify-content: center;
+        margin-bottom: var(--space-4);
+      }
+
+      /* Google's iframe can be oddly sized — normalize it */
+      .g_id_signin iframe {
+        margin: 0 auto !important;
+        width: 100% !important;
+        max-width: 320px;
+      }
+
+      /* Fallback Google button (visible when GIS doesn't load) */
+      .google-btn-fallback {
+        display: none;
+        width: 100%;
+        padding: 14px 20px;
+        background: white;
+        border: 1px solid var(--border-strong);
+        border-radius: var(--radius-sm);
+        font-size: var(--text-md);
+        font-weight: var(--weight-medium);
+        color: var(--text);
+        cursor: pointer;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-3);
+        transition: all var(--transition-fast);
+      }
+
+      .google-btn-fallback:hover {
+        background: var(--surface-alt);
+        border-color: var(--primary);
+      }
+
+      .google-btn-fallback.visible {
+        display: flex;
+      }
+
+      .divider {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        color: var(--text-muted);
+        font-size: var(--text-xs);
+        font-weight: var(--weight-medium);
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        margin: var(--space-5) 0;
+      }
+
+      .divider::before,
+      .divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+      }
+
+      /* Demo sign-in button */
+      .demo-btn {
+        width: 100%;
+        padding: 12px 20px;
+        background: var(--surface-alt);
+        border: 1px dashed var(--border-strong);
+        border-radius: var(--radius-sm);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-medium);
+        color: var(--text-light);
+        cursor: pointer;
+        transition: all var(--transition-fast);
+      }
+
+      .demo-btn:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+        background: var(--primary-pale);
+      }
+
+      /* Error banner */
+      .auth-error {
+        display: none;
+        background: var(--danger-pale);
+        color: var(--danger);
+        border: 1px solid rgba(220, 38, 38, 0.2);
+        padding: var(--space-3) var(--space-4);
+        border-radius: var(--radius-sm);
+        font-size: var(--text-sm);
+        line-height: var(--leading-relaxed);
+        margin-top: var(--space-4);
+        text-align: left;
+      }
+
+      .auth-error.visible {
+        display: block;
+      }
+
+      .auth-error strong {
+        display: block;
+        margin-bottom: var(--space-1);
+      }
+
+      /* Footer */
+      .auth-footer {
+        margin-top: var(--space-6);
+        padding-top: var(--space-5);
+        border-top: 1px solid var(--border-light);
+        font-size: var(--text-sm);
+        color: var(--text-light);
+      }
+
+      .auth-footer a {
+        color: var(--primary);
+        font-weight: var(--weight-medium);
+      }
+
+      /* Loading state (during redirect) */
+      .auth-loading {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 118, 110, 0.95);
+        color: white;
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: var(--space-4);
+        font-size: var(--text-md);
+        font-weight: var(--weight-medium);
+      }
+
+      .auth-loading.visible {
+        display: flex;
+      }
+
+      .spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid rgba(255, 255, 255, 0.25);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Privacy note */
+      .auth-privacy {
+        font-size: var(--text-xs);
+        color: var(--text-muted);
+        margin-top: var(--space-4);
+        line-height: var(--leading-relaxed);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Loading overlay -->
+    <div class="auth-loading" id="authLoading">
+      <div class="spinner"></div>
+      <div>Signing you in…</div>
+    </div>
+
+    <!-- Sign-in card -->
+    <div class="auth-card">
+      <div class="auth-logo">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+          <path d="M6 12v5c3 3 9 3 12 0v-5" />
+        </svg>
+      </div>
+
+      <h1>Welcome back</h1>
+      <p class="subtitle">Sign in to access your CVQ Hub dashboard</p>
+
+      <!-- Google Identity Services -->
+      <div
+        id="g_id_onload"
+        data-client_id="837376030805-uddgg85vblfego48i3k8ookcvdkfj267.apps.googleusercontent.com"
+        data-callback="handleCredentialResponse"
+        data-auto_prompt="false"
+        data-use_fedcm_for_prompt="true"
+      ></div>
+
+      <div
+        class="g_id_signin"
+        data-type="standard"
+        data-size="large"
+        data-theme="outline"
+        data-text="signin_with"
+        data-shape="rectangular"
+        data-logo_alignment="left"
+        data-width="300"
+      ></div>
+
+      <!-- Fallback Google button (shows if GIS fails to render) -->
+      <button class="google-btn-fallback" id="googleFallbackBtn" type="button">
+        <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
+          <path
+            fill="#FFC107"
+            d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C12.955 4 4 12.955 4 24s8.955 20 20 20s20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"
+          />
+          <path
+            fill="#FF3D00"
+            d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C16.318 4 9.656 8.337 6.306 14.691z"
+          />
+          <path
+            fill="#4CAF50"
+            d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"
+          />
+          <path
+            fill="#1976D2"
+            d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571c.001-.001.002-.001.003-.002l6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"
+          />
+        </svg>
+        Sign in with Google
+      </button>
+
+      <div class="divider">or</div>
+
+      <button class="demo-btn" id="demoBtn" type="button">
+        🚀 Continue in demo mode (no Google account)
+      </button>
+
+      <div class="auth-error" id="authError"></div>
+
+      <p class="auth-privacy">
+        CVQ Hub only reads your name, email, and profile picture. We never access your files,
+        contacts, or any other Google data.
+      </p>
+
+      <div class="auth-footer">
+        <a href="landing.html">← Back to home</a>
+      </div>
+    </div>
+
+    <script>
+      // ============================================================
+      //  CVQ Hub — Authentication
+      // ============================================================
+
+      const ERROR_BOX = document.getElementById('authError');
+      const LOADING = document.getElementById('authLoading');
+      const GOOGLE_FALLBACK = document.getElementById('googleFallbackBtn');
+
+      // ------------------------------------------------------------
+      // Error display
+      // ------------------------------------------------------------
+      function showError(title, message) {
+        ERROR_BOX.innerHTML = `<strong>${title}</strong>${message}`;
+        ERROR_BOX.classList.add('visible');
+        console.error('[auth]', title, message);
+      }
+
+      function hideError() {
+        ERROR_BOX.classList.remove('visible');
+        ERROR_BOX.innerHTML = '';
+      }
+
+      function showLoading() {
+        LOADING.classList.add('visible');
+      }
+
+      // ------------------------------------------------------------
+      // Google sign-in callback
+      // Called by Google Identity Services when the user completes sign-in.
+      // ------------------------------------------------------------
+      window.handleCredentialResponse = function (response) {
+        hideError();
+
+        if (!response || !response.credential) {
+          showError('Sign-in failed', 'No credential returned by Google.');
+          return;
+        }
+
+        try {
+          // The credential is a JWT. Decode the payload (middle section).
+          const parts = response.credential.split('.');
+          if (parts.length !== 3) throw new Error('Invalid credential format');
+
+          // Base64url → base64 → string → JSON
+          const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+          const payload = JSON.parse(decodeURIComponent(escape(atob(base64))));
+
+          const user = {
+            uid: payload.sub,
+            email: payload.email,
+            name: payload.name || payload.email.split('@')[0],
+            picture: payload.picture || '',
+          };
+
+          // Persist session
+          localStorage.setItem('cvq_idToken', response.credential);
+          localStorage.setItem('cvq_user', JSON.stringify(user));
+          localStorage.setItem('cvq_signedInAt', new Date().toISOString());
+
+          showLoading();
+          setTimeout(() => {
+            window.location.href = 'index.html';
+          }, 500);
+        } catch (err) {
+          showError('Sign-in failed', 'Could not decode the returned credential: ' + err.message);
+        }
+      };
+
+      // ------------------------------------------------------------
+      // Demo mode — fake a session without hitting Google
+      // ------------------------------------------------------------
+      document.getElementById('demoBtn').addEventListener('click', () => {
+        const user = {
+          uid: 'demo-' + Math.random().toString(36).slice(2, 10),
+          email: 'demo@cvq.local',
+          name: 'Demo Teacher',
+          picture: '',
+        };
+
+        localStorage.setItem('cvq_idToken', 'demo-token-' + Date.now());
+        localStorage.setItem('cvq_user', JSON.stringify(user));
+        localStorage.setItem('cvq_signedInAt', new Date().toISOString());
+        localStorage.setItem('cvq_demo', 'true');
+
+        showLoading();
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 400);
+      });
+
+      // ------------------------------------------------------------
+      // Google button fallback
+      // If the GIS iframe doesn't render within 3 seconds, show our
+      // own button that triggers Google's One Tap prompt.
+      // ------------------------------------------------------------
+      function checkGsiRendered() {
+        const gsiBtn = document.querySelector('.g_id_signin');
+        const iframe = gsiBtn && gsiBtn.querySelector('iframe');
+
+        if (!iframe) {
+          console.warn('[auth] Google button did not render — showing fallback');
+          GOOGLE_FALLBACK.classList.add('visible');
+          if (gsiBtn) gsiBtn.style.display = 'none';
+          return;
+        }
+
+        // Do a quick sanity check: is the Client ID still the placeholder?
+        const clientIdEl = document.getElementById('g_id_onload');
+        if (clientIdEl && clientIdEl.dataset.client_id.includes('YOUR_GOOGLE_CLIENT_ID')) {
+          showError(
+            'Google Sign-In not configured',
+            'Paste your real Client ID into auth.html to enable Google sign-in. You can still use demo mode below.'
+          );
+          GOOGLE_FALLBACK.classList.add('visible');
+          if (gsiBtn) gsiBtn.style.display = 'none';
+        }
+      }
+
+      GOOGLE_FALLBACK.addEventListener('click', () => {
+        // Trigger Google One Tap manually via the legacy method
+        if (window.google && window.google.accounts && window.google.accounts.id) {
+          window.google.accounts.id.prompt((notification) => {
+            if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+              showError(
+                'Google sign-in unavailable',
+                'Your browser blocked the prompt. Try demo mode, or open the site in a fresh tab.'
+              );
+            }
+          });
+        } else {
+          showError(
+            'Google not loaded',
+            'The Google Identity Services script failed to load. Check your internet connection, or use demo mode.'
+          );
+        }
+      });
+
+      // Give GIS up to 3 seconds to render, then check
+      setTimeout(checkGsiRendered, 3000);
+
+      // ------------------------------------------------------------
+      // If already signed in, offer to skip
+      // ------------------------------------------------------------
+      (function alreadySignedIn() {
+        const token = localStorage.getItem('cvq_idToken');
+        const userRaw = localStorage.getItem('cvq_user');
+        if (!token || !userRaw) return;
+
+        try {
+          const user = JSON.parse(userRaw);
+          const banner = document.createElement('div');
+          banner.style.cssText = `
+        background: var(--primary-pale);
+        color: var(--primary);
+        padding: 10px 14px;
+        border-radius: var(--radius-sm);
+        font-size: 0.85rem;
+        margin-bottom: 16px;
+        text-align: left;
+        border: 1px solid rgba(15, 118, 110, 0.2);
+      `;
+          banner.innerHTML = `
+        You're already signed in as <strong>${user.email}</strong>.
+        <a href="index.html" style="margin-left:6px; font-weight:600;">Continue →</a>
+      `;
+          const card = document.querySelector('.auth-card');
+          card.insertBefore(banner, card.querySelector('.auth-logo'));
+        } catch (e) {
+          // ignore
+        }
+      })();
+    </script>
+  </body>
+</html>
