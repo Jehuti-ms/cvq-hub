@@ -1269,21 +1269,86 @@
 
       <!-- ========== REPORTS ========== -->
       <section id="reports" class="tabcontent" role="tabpanel">
-        <div class="tab-placeholder">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M21.21 15.89A10 10 0 1 1 8 2.83" />
-            <path d="M22 12A10 10 0 0 0 12 2v10z" />
-          </svg>
-          <h2>Reports</h2>
-          <p>Weekly, monthly, or by-unit summaries. Export to PDF or print.</p>
-          <span class="badge neutral">Coming next</span>
+        <!-- Header -->
+        <div class="section-header">
+          <h2>📊 Reports</h2>
+          <div class="student-stats">
+            <span class="stat-text" id="reportsClassLabel">All classes</span>
+          </div>
+        </div>
+
+        <!-- No-class banner -->
+        <div class="section-card" id="reportsNoClass" style="display: none">
+          <div style="text-align: center; padding: 20px 10px">
+            <svg
+              width="48"
+              height="48"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="var(--primary)"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              style="margin: 0 auto 12px"
+            >
+              <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+              <path d="M6 12v5c3 3 9 3 12 0v-5" />
+            </svg>
+            <h3 style="margin-bottom: 8px">No class selected</h3>
+            <p style="color: var(--text-light); max-width: 400px; margin: 0 auto">
+              Pick a class from the header to generate reports for it.
+            </p>
+          </div>
+        </div>
+
+        <!-- Report picker -->
+        <div class="section-card" id="reportsPickerCard" style="display: none">
+          <h3 style="margin-bottom: 16px">Choose a report</h3>
+          <div class="report-picker">
+            <button type="button" class="report-card" data-report="weekly">
+              <span class="report-icon">📅</span>
+              <div class="report-title">Weekly summary</div>
+              <div class="report-desc">Sessions, hours, attendance for the last 7 days</div>
+            </button>
+            <button type="button" class="report-card" data-report="monthly">
+              <span class="report-icon">🗓️</span>
+              <div class="report-title">Monthly summary</div>
+              <div class="report-desc">Everything for the current calendar month</div>
+            </button>
+            <button type="button" class="report-card" data-report="class">
+              <span class="report-icon">🏫</span>
+              <div class="report-title">Class report</div>
+              <div class="report-desc">Full history — sessions, marks, attendance, evidence</div>
+            </button>
+            <button type="button" class="report-card" data-report="trainee">
+              <span class="report-icon">👤</span>
+              <div class="report-title">Trainee progress</div>
+              <div class="report-desc">Per-trainee sessions, marks, and attendance rates</div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Report output -->
+        <div class="section-card" id="reportsOutputCard" style="display: none">
+          <div class="section-header" style="margin-bottom: 16px">
+            <h3 style="margin: 0" id="reportsOutputTitle">Report</h3>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap">
+              <button type="button" class="button small secondary" id="reportsBackBtn">
+                ← Back
+              </button>
+              <button type="button" class="button small info" id="reportsCopyBtn">
+                📋 Copy as text
+              </button>
+              <button type="button" class="button small primary" id="reportsPrintBtn">
+                🖨️ Print / Save PDF
+              </button>
+            </div>
+          </div>
+
+          <!-- Printable area -->
+          <div id="reportsContent" class="reports-printable">
+            <p class="empty-message">Generating…</p>
+          </div>
         </div>
       </section>
 
@@ -1853,6 +1918,10 @@
       const { init: initEffort } = await import('/src/ui/tabs/effort.js');
       await initEffort();
       console.log('[dashboard] Effort tab booted');
+
+      const { init: initReports } = await import('/src/ui/tabs/reports.js');
+      await initReports();
+      console.log('[dashboard] Reports tab booted');
     </script>
   </body>
 </html>
