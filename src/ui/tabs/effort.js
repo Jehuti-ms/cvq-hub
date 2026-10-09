@@ -295,7 +295,7 @@ function renderByMonth(filteredWorklogs) {
 // CHART
 // ============================================================================
 
-function renderChart(filteredWorklogs) {
+async function renderChart(filteredWorklogs) {
   if (!els.chart) return;
 
   // Build last 12 weeks (ISO week start = Monday)
@@ -353,8 +353,14 @@ function renderChart(filteredWorklogs) {
   // Destroy previous chart
   if (chartInstance) chartInstance.destroy();
 
+  // Load Chart.js on demand if not present
   if (typeof Chart === 'undefined') {
-    console.warn('[effort] Chart.js not loaded');
+    console.log('[effort] Loading Chart.js dynamically…');
+    await loadChartJs();
+  }
+
+  if (typeof Chart === 'undefined') {
+    console.warn('[effort] Chart.js still not loaded after attempt');
     return;
   }
 
@@ -423,6 +429,29 @@ function fmtNum(n, decimals = 0) {
   const fixed = Number(n).toFixed(decimals);
   // Strip trailing .0
   return fixed.replace(/\.0+$/, '');
+}
+
+function loadChartJs() {
+  return new Promise((resolve) => {
+    if (typeof Chart !== 'undefined') return resolve();
+
+    const existing = document.querySelector('script[src*="chart.js"]');
+    if (existing) {
+      // Already being loaded — wait for it
+      existing.addEventListener('load', () => resolve());
+      existing.addEventListener('error', () => resolve());
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';
+    script.onload = () => resolve();
+    script.onerror = () => {
+      console.warn('[effort] Failed to load Chart.js from CDN');
+      resolve();
+    };
+    document.head.appendChild(script);
+  });
 }
 
 function escapeHtml(s) {
