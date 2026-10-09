@@ -1191,23 +1191,79 @@
 
       <!-- ========== EFFORT ========== -->
       <section id="effort" class="tabcontent" role="tabpanel">
-        <div class="tab-placeholder">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <polyline points="12 6 12 12 16 14" />
-          </svg>
-          <h2>My Effort</h2>
-          <p>
-            See your total hours, sessions, and evidence submitted — per week, month, or semester.
+        <!-- Header -->
+        <div class="section-header">
+          <h2>⏱️ My Effort</h2>
+          <div class="student-stats">
+            <span class="stat-text" id="effortPeriod">All time</span>
+          </div>
+        </div>
+
+        <!-- Period filter -->
+        <div class="section-card" style="padding: 12px 16px">
+          <div style="display: flex; gap: 8px; flex-wrap: wrap" id="effortPeriods">
+            <button type="button" class="button small" data-period="week">📅 This week</button>
+            <button type="button" class="button small" data-period="month">📅 This month</button>
+            <button type="button" class="button small" data-period="term">📅 This term</button>
+            <button type="button" class="button small primary" data-period="all">
+              🌐 All time
+            </button>
+          </div>
+        </div>
+
+        <!-- Key metrics -->
+        <div class="stat-grid" style="margin-bottom: 16px">
+          <div class="stat-card">
+            <div class="stat-value" id="effHours">0</div>
+            <div class="stat-label">Hours logged</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="effSessions">0</div>
+            <div class="stat-label">Sessions delivered</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="effWorklogs">0</div>
+            <div class="stat-label">Worklog entries</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="effMarks">0</div>
+            <div class="stat-label">Marks recorded</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="effAttendance">0</div>
+            <div class="stat-label">Attendance records</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="effEvidence">0</div>
+            <div class="stat-label">Evidence files</div>
+          </div>
+        </div>
+
+        <!-- Weekly hours chart -->
+        <div class="section-card">
+          <h3 style="margin-bottom: 16px">📊 Hours per week</h3>
+          <div style="position: relative; height: 220px">
+            <canvas id="effortChart"></canvas>
+          </div>
+          <p class="empty-message" id="effortChartEmpty" style="display: none">
+            No worklog data yet.
           </p>
-          <span class="badge neutral">Coming next</span>
+        </div>
+
+        <!-- By class -->
+        <div class="section-card">
+          <h3 style="margin-bottom: 16px">🏫 Breakdown by class</h3>
+          <div id="effByClass">
+            <p class="empty-message">No data yet.</p>
+          </div>
+        </div>
+
+        <!-- By month -->
+        <div class="section-card">
+          <h3 style="margin-bottom: 16px">📅 Breakdown by month</h3>
+          <div id="effByMonth">
+            <p class="empty-message">No data yet.</p>
+          </div>
         </div>
       </section>
 
@@ -1790,6 +1846,10 @@
       const { init: initAttendance } = await import('/src/ui/tabs/attendance.js');
       await initAttendance();
       console.log('[dashboard] Attendance tab booted');
+
+      const { init: initEffort } = await import('/src/ui/tabs/effort.js');
+      await initEffort();
+      console.log('[dashboard] Effort tab booted');
     </script>
   </body>
 </html>
