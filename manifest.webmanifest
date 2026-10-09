@@ -1,7 +1,7 @@
 {
   "name": "CVQ Hub",
   "short_name": "CVQ Hub",
-  "description": "Offline-first trainee progress & teacher effort tracker for CVQ programmes",
+  "description": "Offline-first trainee progress & teacher effort tracker",
   "start_url": "index.html",
   "scope": "./",
   "display": "standalone",
@@ -11,8 +11,8 @@
   "lang": "en",
   "dir": "ltr",
   "categories": ["education", "productivity"],
-  "icons": []
-  /*  {
+  "icons": [
+    {
       "src": "icons/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
@@ -25,16 +25,10 @@
       "purpose": "any"
     },
     {
-      "src": "icons/icon-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
-      "src": "icons/icon-512x512.png",
+      "src": "icons/maskable-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
     }
-  ] */
+  ]
 }
