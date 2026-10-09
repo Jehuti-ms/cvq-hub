@@ -1894,32 +1894,32 @@
       );
 
       // ---------- Boot class management first ----------
-      const { init: initClassModal } = await import('/src/ui/classModal.js');
+      const { init: initClassModal } = await import('./src/ui/classModal.js');
       await initClassModal();
       console.log('[dashboard] Class manager booted');
 
       // ---------- Then feature tabs ----------
-      const { init: initTrainees } = await import('/src/ui/tabs/trainees.js');
+      const { init: initTrainees } = await import('./src/ui/tabs/trainees.js');
       await initTrainees();
       console.log('[dashboard] Trainees tab booted');
 
-      const { init: initWorklog } = await import('/src/ui/tabs/worklog.js');
+      const { init: initWorklog } = await import('./src/ui/tabs/worklog.js');
       await initWorklog();
       console.log('[dashboard] Worklog tab booted');
 
-      const { init: initMarks } = await import('/src/ui/tabs/marks.js');
+      const { init: initMarks } = await import('./src/ui/tabs/marks.js');
       await initMarks();
       console.log('[dashboard] Marks tab booted');
 
-      const { init: initAttendance } = await import('/src/ui/tabs/attendance.js');
+      const { init: initAttendance } = await import('./src/ui/tabs/attendance.js');
       await initAttendance();
       console.log('[dashboard] Attendance tab booted');
 
-      const { init: initEffort } = await import('/src/ui/tabs/effort.js');
+      const { init: initEffort } = await import('./src/ui/tabs/effort.js');
       await initEffort();
       console.log('[dashboard] Effort tab booted');
 
-      const { init: initReports } = await import('/src/ui/tabs/reports.js');
+      const { init: initReports } = await import('./src/ui/tabs/reports.js');
       await initReports();
       console.log('[dashboard] Reports tab booted');
     </script>
