@@ -171,7 +171,15 @@ export const api = {
       });
       json = await res.json();
     } catch (networkErr) {
-      // Network failure (no internet, server unreachable)
+      // ⚡ Network failed — if this is a write, queue it instead of losing data
+      if (isWrite) {
+        console.warn('[api] Network failed — queueing write:', networkErr.message);
+        const item = { id: crypto.randomUUID(), action, body, queuedAt: Date.now() };
+        await queueAdd(item);
+        return { queued: true, id: item.id, reason: 'network-error' };
+      }
+
+      // For reads, just fail — nothing to queue
       throw new Error('Network error: ' + networkErr.message);
     }
 
@@ -187,28 +195,45 @@ export const api = {
 
   /** Flush any queued offline writes. Called automatically on reconnect. */
   async flushQueue() {
-    if (MOCK) return { synced: 0, total: 0 };
+    if (MOCK) return { synced: 0, total: 0, blocked: false };
 
     const items = await queueAll();
-    if (!items.length) return { synced: 0, total: 0 };
+    if (!items.length) return { synced: 0, total: 0, blocked: false };
 
     const idToken = localStorage.getItem('cvq_idToken');
-    const res = await fetch(APPS_SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({
-        action: 'bulkSync',
-        idToken,
-        items: items.map((it) => ({
-          id: it.id,
-          action: it.action,
-          body: it.body,
-        })),
-      }),
-    });
+    if (!idToken) {
+      // Not signed in — don't wipe the queue
+      return { synced: 0, total: items.length, blocked: true, reason: 'no-auth' };
+    }
 
-    const json = await res.json();
-    if (!json.ok) throw new Error(json.error);
+    let res, json;
+    try {
+      res = await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'bulkSync',
+          idToken,
+          items: items.map((it) => ({
+            id: it.id,
+            action: it.action,
+            body: it.body,
+          })),
+        }),
+      });
+      json = await res.json();
+    } catch (networkErr) {
+      // Still offline or network issue — leave items in queue
+      return { synced: 0, total: items.length, blocked: true, reason: 'network' };
+    }
+
+    if (!json.ok) {
+      const msg = json.error || '';
+      if (/Invalid ID token|Missing idToken/i.test(msg)) {
+        return { synced: 0, total: items.length, blocked: true, reason: 'token-expired' };
+      }
+      throw new Error(msg);
+    }
 
     let synced = 0;
     for (const r of json.data || []) {
@@ -217,7 +242,7 @@ export const api = {
         synced++;
       }
     }
-    return { synced, total: items.length };
+    return { synced, total: items.length, blocked: false };
   },
 
   /** Upload an image or video file as evidence. */

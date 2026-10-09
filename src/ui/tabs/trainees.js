@@ -231,13 +231,16 @@ async function onSubmit(e) {
   setFormBusy(true);
 
   try {
-    if (editingId) {
-      await api.call('updateStudent', { id: editingId, patch: payload });
-      toast(`Updated ${payload.name}`, 'success');
+    const result = editingId
+      ? await api.call('updateStudent', { id: editingId, patch: payload })
+      : await api.call('createStudent', payload);
+
+    if (result && result.queued) {
+      toast(`${payload.name} queued — will sync when online`, 'info');
     } else {
-      await api.call('createStudent', payload);
-      toast(`Added ${payload.name}`, 'success');
+      toast(editingId ? `Updated ${payload.name}` : `Added ${payload.name}`, 'success');
     }
+
     closeModal();
     await loadTrainees();
   } catch (err) {

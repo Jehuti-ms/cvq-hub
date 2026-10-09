@@ -306,10 +306,26 @@ async function onSubmit(e) {
     let saved;
     if (editingId) {
       saved = await api.call('updateWorklog', { id: editingId, patch: payload });
-      toast('Session updated', 'success');
+      if (saved && saved.queued) {
+        toast('Session update queued — will sync when online', 'info');
+      } else {
+        toast('Session updated', 'success');
+      }
     } else {
       saved = await api.call('createWorklog', payload);
-      toast('Session logged', 'success');
+      if (saved && saved.queued) {
+        toast('Session queued — will sync when online', 'info');
+      } else {
+        toast('Session logged', 'success');
+      }
+    }
+
+    // Skip evidence upload if we're queued — evidence needs a real worklog ID
+    if (saved && saved.queued && evidence) {
+      evidence.clear();
+      closeModal();
+      await loadWorklogs();
+      return;
     }
 
     if (evidence) {

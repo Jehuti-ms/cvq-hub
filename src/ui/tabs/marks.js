@@ -405,13 +405,16 @@ async function onSubmit(e) {
   setFormBusy(true);
 
   try {
-    if (editingId) {
-      await api.call('updateMark', { id: editingId, patch: payload });
-      toast('Mark updated', 'success');
+    const result = editingId
+      ? await api.call('updateMark', { id: editingId, patch: payload })
+      : await api.call('createMark', payload);
+
+    if (result && result.queued) {
+      toast('Mark queued — will sync when online', 'info');
     } else {
-      await api.call('createMark', payload);
-      toast('Mark added', 'success');
+      toast(editingId ? 'Mark updated' : 'Mark added', 'success');
     }
+
     closeModal();
     await loadMarks();
   } catch (err) {
