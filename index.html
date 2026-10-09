@@ -1014,21 +1014,178 @@
 
       <!-- ========== ATTENDANCE ========== -->
       <section id="attendance" class="tabcontent" role="tabpanel">
-        <div class="tab-placeholder">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M9 11l3 3L22 4" />
-            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
-          </svg>
-          <h2>Attendance</h2>
-          <p>Mark trainees present, late, absent, or excused — fast, one tap per trainee.</p>
-          <span class="badge neutral">Coming next</span>
+        <!-- Header -->
+        <div class="section-header">
+          <h2>✅ Attendance</h2>
+          <div class="student-stats">
+            <span class="stat-badge" id="attendanceCount">0</span>
+            <span class="stat-text">records</span>
+          </div>
+        </div>
+
+        <!-- Attendance stats card -->
+        <div class="section-card" id="attendanceStatsCard" style="display: none">
+          <h3 style="margin-bottom: 16px">📊 Attendance summary</h3>
+
+          <!-- Top-line stats -->
+          <div class="stat-grid" style="margin-bottom: 16px">
+            <div class="stat-card">
+              <div class="stat-value" id="attSessionsCount">0</div>
+              <div class="stat-label">Sessions</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="attRecordsCount">0</div>
+              <div class="stat-label">Records</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="attRate">—</div>
+              <div class="stat-label">Attendance rate</div>
+            </div>
+          </div>
+
+          <!-- Status breakdown -->
+          <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px">
+            <span class="badge success" id="attPresentBadge">✅ 0 present</span>
+            <span class="badge warning" id="attLateBadge">⏰ 0 late</span>
+            <span class="badge danger" id="attAbsentBadge">❌ 0 absent</span>
+            <span class="badge info" id="attExcusedBadge">📝 0 excused</span>
+          </div>
+
+          <!-- Per-trainee breakdown -->
+          <div style="border-top: 1px solid var(--border-light); padding-top: 16px">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 12px;
+                flex-wrap: wrap;
+                gap: 8px;
+              "
+            >
+              <h4 style="margin: 0">Per-trainee breakdown</h4>
+              <button
+                type="button"
+                class="button small secondary"
+                id="attSortToggle"
+                data-sort="name"
+              >
+                Sort: Name A→Z
+              </button>
+            </div>
+            <div id="attPerTrainee">
+              <p class="empty-message">No data yet.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- No-class banner -->
+        <div class="section-card" id="attendanceNoClass" style="display: none">
+          <div style="text-align: center; padding: 20px 10px">
+            <svg
+              width="48"
+              height="48"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="var(--primary)"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              style="margin: 0 auto 12px"
+            >
+              <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+              <path d="M6 12v5c3 3 9 3 12 0v-5" />
+            </svg>
+            <h3 style="margin-bottom: 8px">No class selected</h3>
+            <p style="color: var(--text-light); max-width: 400px; margin: 0 auto">
+              Select a class from the picker at the top to take attendance.
+            </p>
+          </div>
+        </div>
+
+        <!-- Take attendance card -->
+        <div class="section-card" id="attendanceFormCard" style="display: none">
+          <h3 style="margin-bottom: 16px">📋 Take attendance</h3>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="attendanceDate">Date *</label>
+              <input type="date" id="attendanceDate" required />
+            </div>
+            <div class="form-group">
+              <label for="attendanceUnit">Unit / Module</label>
+              <input
+                type="text"
+                id="attendanceUnit"
+                autocomplete="off"
+                placeholder="e.g., CVQ-COS-201"
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="attendanceTopic">Topic</label>
+            <input
+              type="text"
+              id="attendanceTopic"
+              autocomplete="off"
+              placeholder="e.g., Client consultation"
+            />
+          </div>
+
+          <!-- Bulk actions -->
+          <div style="display: flex; gap: 8px; flex-wrap: wrap; margin: 16px 0 12px">
+            <button type="button" class="button small success" id="allPresentBtn">
+              ✅ All present
+            </button>
+            <button type="button" class="button small warning" id="allLateBtn">⏰ All late</button>
+            <button type="button" class="button small danger" id="allAbsentBtn">
+              ❌ All absent
+            </button>
+          </div>
+
+          <!-- Trainee rows -->
+          <div id="attendanceRoster">
+            <p class="empty-message">Loading trainees…</p>
+          </div>
+
+          <div class="form-group" style="margin-top: 16px">
+            <label for="attendanceNotes">Session notes</label>
+            <textarea
+              id="attendanceNotes"
+              rows="2"
+              placeholder="Optional notes for this session…"
+            ></textarea>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="button primary" id="saveAttendanceBtn">
+              💾 Save attendance
+            </button>
+            <button type="button" class="button secondary" id="resetAttendanceBtn">↺ Reset</button>
+          </div>
+        </div>
+
+        <!-- Recent attendance card -->
+        <div class="section-card" id="attendanceListCard" style="display: none">
+          <div class="section-header" style="margin-bottom: 12px">
+            <h3 style="margin: 0">📅 Recent sessions</h3>
+            <input
+              type="search"
+              id="attendanceSearch"
+              placeholder="🔍 Search…"
+              style="
+                padding: 8px 12px;
+                border: 1px solid var(--border);
+                border-radius: var(--radius-sm);
+                font-size: var(--text-sm);
+                min-width: 160px;
+              "
+            />
+          </div>
+          <div id="attendanceList">
+            <p class="empty-message">Loading…</p>
+          </div>
         </div>
       </section>
 
@@ -1629,6 +1786,10 @@
       const { init: initMarks } = await import('/src/ui/tabs/marks.js');
       await initMarks();
       console.log('[dashboard] Marks tab booted');
+
+      const { init: initAttendance } = await import('/src/ui/tabs/attendance.js');
+      await initAttendance();
+      console.log('[dashboard] Attendance tab booted');
     </script>
   </body>
 </html>

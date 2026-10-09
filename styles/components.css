@@ -1060,3 +1060,109 @@ button[type='submit']:disabled {
   color: var(--text-light);
   margin-top: 4px;
 }
+
+/* ==========================================================================
+   Attendance roster
+   ========================================================================== */
+
+.roster-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  margin-bottom: 6px;
+  transition: all var(--transition-fast);
+}
+
+.roster-row[data-status='present'] {
+  border-left: 4px solid var(--success);
+}
+.roster-row[data-status='late'] {
+  border-left: 4px solid var(--warning);
+}
+.roster-row[data-status='absent'] {
+  border-left: 4px solid var(--danger);
+}
+.roster-row[data-status='excused'] {
+  border-left: 4px solid var(--info);
+}
+
+.roster-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.roster-name {
+  font-weight: var(--weight-medium);
+  font-size: var(--text-base);
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.roster-meta {
+  font-size: var(--text-xs);
+  color: var(--text-light);
+}
+
+.roster-status {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.status-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  min-height: 0;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  opacity: 0.45;
+}
+
+.status-btn:hover {
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+.status-btn.active {
+  opacity: 1;
+  border-width: 2px;
+}
+
+.status-btn.present.active {
+  background: var(--success-pale);
+  border-color: var(--success);
+}
+.status-btn.late.active {
+  background: var(--warning-pale);
+  border-color: var(--warning);
+}
+.status-btn.absent.active {
+  background: var(--danger-pale);
+  border-color: var(--danger);
+}
+
+@media (max-width: 480px) {
+  .status-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+  }
+}
