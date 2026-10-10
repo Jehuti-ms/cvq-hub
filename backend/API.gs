@@ -1,19 +1,11 @@
-// =============================================================================
-// backend/API.gs
-//
-// MIRROR FILE — This is a copy of the code that runs in Google Apps Script.
-// The Apps Script project is the source of truth for what executes.
-// Keep this file in sync when you change the live version.
-//
-// To deploy changes:
-//   1. Edit the code in the Apps Script editor (script.google.com)
-//   2. Save and redeploy as a new version
-//   3. Mirror the change here and commit
-// =============================================================================
-
 /**
  * CVQ Hub — API Router
  * Handles all HTTP requests from the PWA.
+ * Every request must include a valid Google ID token and an `action`.
+ *
+ * Deploy as Web App:
+ *   Execute as:  Me (your-email@gmail.com)
+ *   Access:      Anyone
  */
 
 // ============================================================================
@@ -23,6 +15,7 @@
 function doGet(e) {
   return handleRequest_(e);
 }
+
 function doPost(e) {
   return handleRequest_(e);
 }
@@ -33,13 +26,17 @@ function doPost(e) {
 
 function handleRequest_(e) {
   try {
+    // ----- Parse request -----
     const body = e.postData ? JSON.parse(e.postData.contents) : e.parameter || {};
+
     const action = body.action || e.parameter.action;
     if (!action) throw new Error('Missing action');
 
+    // ----- Authenticate -----
     const user = verifyUser_(body.idToken);
     const role = getUserRole_(user.email);
 
+    // ----- Route -----
     let result;
     if (action === 'bulkSync') {
       result = bulkSync_(body.items, user, role);
@@ -47,6 +44,7 @@ function handleRequest_(e) {
       result = route_(action, body, user, role);
     }
 
+    // ----- Audit log writes -----
     if (/^(create|update|delete|upload)/.test(action)) {
       logAudit_(user, role, action, body);
     }
@@ -64,9 +62,13 @@ function handleRequest_(e) {
 
 function verifyUser_(idToken) {
   if (!idToken) throw new Error('Missing idToken');
-
   if (String(idToken).startsWith('demo-token-')) {
-    return { uid: 'demo-user', email: 'demo@cvq.local', name: 'Demo Teacher' };
+    // Allow demo-mode tokens for local testing
+    return {
+      uid: 'demo-user',
+      email: 'demo@cvq.local',
+      name: 'Demo Teacher',
+    };
   }
 
   const res = UrlFetchApp.fetch(
@@ -79,6 +81,7 @@ function verifyUser_(idToken) {
     throw new Error('Invalid ID token: ' + (info.error_description || 'no email'));
   }
 
+  // Upsert user
   const existing = findRow_('Users', (r) => r.email === info.email);
   if (!existing) {
     appendRow_('Users', {
@@ -110,6 +113,7 @@ function getUserRole_(email) {
 function route_(action, body, user, role) {
   const isCoordinator = role === 'coordinator';
 
+  // Helper: filter rows by current teacher's ownership
   const mine = (sheetName) => {
     const all = readSheet_(sheetName);
     if (isCoordinator) return all;
@@ -117,6 +121,7 @@ function route_(action, body, user, role) {
   };
 
   switch (action) {
+    // ---------- LIST ----------
     case 'listClasses':
       return mine('Classes');
     case 'listStudents':
@@ -132,6 +137,7 @@ function route_(action, body, user, role) {
     case 'listSemesters':
       return mine('Semesters');
 
+    // ---------- CREATE ----------
     case 'createClass':
     case 'createStudent':
     case 'createWorklog':
@@ -140,6 +146,7 @@ function route_(action, body, user, role) {
     case 'createSemester':
       return handleCreate_(action, body, user);
 
+    // ---------- UPDATE ----------
     case 'updateClass':
     case 'updateStudent':
     case 'updateWorklog':
@@ -148,6 +155,7 @@ function route_(action, body, user, role) {
     case 'updateSemester':
       return handleUpdate_(action, body, user, isCoordinator);
 
+    // ---------- DELETE ----------
     case 'deleteClass':
     case 'deleteStudent':
     case 'deleteWorklog':
@@ -156,15 +164,16 @@ function route_(action, body, user, role) {
     case 'deleteSemester':
       return handleDelete_(action, body, user, isCoordinator);
 
+    // ---------- MEDIA ----------
     case 'uploadMedia':
       return handleUpload_(body, user);
     case 'deleteMedia':
       return handleDeleteMedia_(body, user, isCoordinator);
 
+    // ---------- COORDINATOR ONLY ----------
     case 'listUsers':
       if (!isCoordinator) throw new Error('Forbidden: coordinator only');
       return readSheet_('Users');
-
     case 'setUserRole':
       if (!isCoordinator) throw new Error('Forbidden: coordinator only');
       return updateRow_('Users', body.id, { role: body.role });
@@ -177,6 +186,10 @@ function route_(action, body, user, role) {
     case 'listAuditLog':
       if (!isCoordinator) throw new Error('Forbidden: coordinator only');
       return readSheet_('AuditLog');
+
+    case 'updateUser':
+      if (!isCoordinator) throw new Error('Forbidden: coordinator only');
+      return updateRow_('Users', body.id, body.patch || {});
 
     default:
       throw new Error('Unknown action: ' + action);
@@ -288,7 +301,7 @@ function handleDeleteMedia_(body, user, isCoordinator) {
 }
 
 // ============================================================================
-// BULK SYNC
+// BULK SYNC (for offline queue)
 // ============================================================================
 
 function bulkSync_(items, user, role) {
@@ -304,7 +317,7 @@ function bulkSync_(items, user, role) {
 }
 
 // ============================================================================
-// SHEET HELPERS
+// LOW-LEVEL SHEET HELPERS
 // ============================================================================
 
 function getSheet_(name) {
@@ -317,10 +330,21 @@ function readSheet_(name) {
   const sheet = getSheet_(name);
   const values = sheet.getDataRange().getValues();
   if (values.length < 2) return [];
+
   const headers = values[0];
+  const idCol = headers.indexOf('id');
+
   return values
     .slice(1)
-    .filter((row) => row.some((c) => c !== '' && c !== null && c !== undefined))
+    .filter((row) => {
+      // Require the `id` column to have a real value.
+      // This filters out phantom rows that have formatted cells or default false checkboxes.
+      if (idCol === -1) {
+        return row.some((c) => c !== '' && c !== null && c !== undefined);
+      }
+      const id = row[idCol];
+      return id !== '' && id !== null && id !== undefined;
+    })
     .map((row) => Object.fromEntries(headers.map((h, i) => [h, row[i]])));
 }
 
@@ -328,18 +352,15 @@ function findRow_(name, predicate) {
   return readSheet_(name).find(predicate);
 }
 
-/**
- * Writes a new row to the first available data row (starts at row 2).
- * Does NOT use sheet.appendRow() because that respects formatted-but-empty
- * rows and can push data to row 1000+.
- */
 function appendRow_(name, obj) {
   const sheet = getSheet_(name);
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
   const row = headers.map((h) => (obj[h] !== undefined ? obj[h] : ''));
 
+  // Find the first truly empty data row (starting from row 2),
+  // ignoring rows that only have formulas or formatting.
   const dataRange = sheet.getRange(2, 1, sheet.getMaxRows() - 1, 1).getValues();
-  let targetRow = sheet.getLastRow() + 1;
+  let targetRow = sheet.getLastRow() + 1; // fallback
   for (let i = 0; i < dataRange.length; i++) {
     if (!dataRange[i][0]) {
       targetRow = i + 2;
@@ -409,7 +430,7 @@ function logAudit_(user, role, action, body) {
 }
 
 // ============================================================================
-// DRIVE FOLDER
+// DRIVE FOLDER FOR EVIDENCE
 // ============================================================================
 
 function getEvidenceFolderId_() {
@@ -417,6 +438,7 @@ function getEvidenceFolderId_() {
   let folderId = props.getProperty('EVIDENCE_FOLDER_ID');
 
   if (!folderId) {
+    // Create folder on first call
     const folder = DriveApp.createFolder('CVQ Hub Evidence');
     folder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
     folderId = folder.getId();
@@ -525,4 +547,19 @@ function json_(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(
     ContentService.MimeType.JSON
   );
+}
+
+// ============================================================================
+// DIAGNOSTIC
+// ============================================================================
+
+/**
+ * Test the API without a browser.
+ * Run this from the Apps Script editor to verify the router works.
+ */
+function testApi() {
+  const testUser = { uid: 'test-user', email: 'test@example.com', name: 'Test' };
+  const students = route_('listStudents', {}, testUser, 'teacher');
+  console.log('listStudents returned', students.length, 'rows');
+  console.log(JSON.stringify(students.slice(0, 3), null, 2));
 }
