@@ -1539,3 +1539,68 @@ button[type='submit']:disabled {
     display: block !important;
   }
 }
+
+/* ==========================================================================
+   Reports — session cards (mobile)
+   ========================================================================== */
+
+.report-session-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 10px;
+}
+
+.report-session-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.report-session-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text);
+  margin-bottom: 2px;
+  line-height: 1.35;
+}
+
+.report-session-meta {
+  font-size: 0.75rem;
+  color: var(--text-light);
+  font-family: var(--font-mono);
+}
+
+.report-session-desc {
+  font-size: 0.85rem;
+  color: var(--text-light);
+  line-height: 1.5;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-light);
+}
+
+/* Print — cards hidden, table shown (already handled for reports-view classes,
+   but include session cards for clarity) */
+@media print {
+  .report-session-card {
+    display: none !important;
+  }
+}
+
+/* In dark mode, session cards on the printable area should stay light */
+[data-theme='dark'] .reports-printable .report-session-card {
+  background: #f9fafb;
+  border-color: #e5e7eb;
+}
+
+[data-theme='dark'] .reports-printable .report-session-title {
+  color: #111;
+}
+
+[data-theme='dark'] .reports-printable .report-session-meta,
+[data-theme='dark'] .reports-printable .report-session-desc {
+  color: #64748b;
+}

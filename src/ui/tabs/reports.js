@@ -368,27 +368,60 @@ function reportClass() {
     <div class="stat-line"><span>Attendance rate</span><strong>${attendanceRate != null ? attendanceRate + '%' : '—'}</strong></div>
     <div class="stat-line"><span>Evidence files</span><strong>${media.length}</strong></div>
 
-    <h3>Roster</h3>
+        <h3>Roster</h3>
     ${
       trainees.length
         ? `
-      <table>
-        <thead><tr><th>Name</th><th>ID</th><th>Gender</th><th>Contact</th></tr></thead>
-        <tbody>
-          ${trainees
-            .map(
-              (t) => `
-            <tr>
-              <td>${escapeHtml(t.name || '')}</td>
-              <td>${escapeHtml(t.studentId || '')}</td>
-              <td>${escapeHtml(t.gender || '')}</td>
-              <td>${escapeHtml(t.email || t.phone || '')}</td>
-            </tr>
-          `
-            )
-            .join('')}
-        </tbody>
-      </table>
+      <!-- Desktop table -->
+      <div class="reports-table-view">
+        <table>
+          <thead><tr><th>Name</th><th>ID</th><th>Gender</th><th>Contact</th></tr></thead>
+          <tbody>
+            ${trainees
+              .map(
+                (t) => `
+              <tr>
+                <td>${escapeHtml(t.name || '')}</td>
+                <td>${escapeHtml(t.studentId || '')}</td>
+                <td>${escapeHtml(t.gender || '')}</td>
+                <td>${escapeHtml(t.email || t.phone || '')}</td>
+              </tr>
+            `
+              )
+              .join('')}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mobile cards -->
+      <div class="reports-card-view">
+        ${trainees
+          .map(
+            (t) => `
+          <div class="report-trainee-card">
+            <div class="report-trainee-header">
+              <div>
+                <div class="report-trainee-name">${escapeHtml(t.name || '—')}</div>
+                <div class="report-trainee-id">${escapeHtml(t.studentId || '')}</div>
+              </div>
+              ${t.gender ? `<span class="badge neutral" style="font-size: 0.7rem;">${escapeHtml(t.gender)}</span>` : ''}
+            </div>
+            ${
+              t.email || t.phone
+                ? `
+              <div style="font-size: 0.85rem; color: var(--text-light);">
+                ${t.email ? `📧 ${escapeHtml(t.email)}` : ''}
+                ${t.email && t.phone ? ' · ' : ''}
+                ${t.phone ? `📞 ${escapeHtml(t.phone)}` : ''}
+              </div>
+            `
+                : ''
+            }
+          </div>
+        `
+          )
+          .join('')}
+      </div>
     `
         : '<p>No trainees enrolled.</p>'
     }
@@ -553,23 +586,26 @@ function copyAsText() {
 function worklogTable(list) {
   if (!list.length) return '<h3>Sessions</h3><p>No sessions logged in this period.</p>';
 
+  const sorted = list.slice().sort((a, b) => String(b.date).localeCompare(String(a.date)));
+
   return `
     <h3>Sessions</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Topic</th>
-          <th>Duration</th>
-          <th>Details</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${list
-          .slice()
-          .sort((a, b) => String(b.date).localeCompare(String(a.date)))
-          .map(
-            (w) => `
+
+    <!-- Desktop table -->
+    <div class="reports-table-view">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Topic</th>
+            <th>Duration</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${sorted
+            .map(
+              (w) => `
             <tr>
               <td>${formatDate(normalizeDate(w.date))}</td>
               <td>${escapeHtml(w.topic || w.subject || '—')}</td>
@@ -577,10 +613,37 @@ function worklogTable(list) {
               <td>${escapeHtml((w.description || '').slice(0, 80))}</td>
             </tr>
           `
-          )
-          .join('')}
-      </tbody>
-    </table>
+            )
+            .join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mobile cards -->
+    <div class="reports-card-view">
+      ${sorted
+        .map(
+          (w) => `
+        <div class="report-session-card">
+          <div class="report-session-header">
+            <div>
+              <div class="report-session-title">${escapeHtml(w.topic || w.subject || 'Untitled session')}</div>
+              <div class="report-session-meta">${formatDate(normalizeDate(w.date))}</div>
+            </div>
+            <span class="badge primary" style="font-size: 0.75rem; flex-shrink: 0;">${w.duration}h</span>
+          </div>
+          ${
+            w.description
+              ? `
+            <div class="report-session-desc">${escapeHtml(w.description.slice(0, 160))}${w.description.length > 160 ? '…' : ''}</div>
+          `
+              : ''
+          }
+        </div>
+      `
+        )
+        .join('')}
+    </div>
   `;
 }
 
