@@ -1,21 +1,49 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <!-- Background: teal gradient square with rounded corners -->
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0f766e"/>
-      <stop offset="100%" stop-color="#0b5a54"/>
+      <stop offset="0%" stop-color="#14b8a6"/>
+      <stop offset="100%" stop-color="#0f766e"/>
     </linearGradient>
   </defs>
-  <rect width="512" height="512" rx="96" ry="96" fill="url(#bg)"/>
 
-  <!-- White graduation cap icon (matches the header) -->
-  <g transform="translate(256 256)">
-    <g transform="translate(-160 -160) scale(13.333)" fill="none"
-       stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <!-- Cap top -->
-      <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-      <!-- Cap base -->
-      <path d="M6 12v5c3 3 9 3 12 0v-5"/>
-    </g>
+  <rect width="512" height="512" rx="112" ry="112" fill="url(#bg)"/>
+
+  <!-- Big sparkle (main) -->
+  <g transform="translate(230, 230)" fill="#f59e0b">
+    <path d="M 0 -90
+             L 22 -22
+             L 90 0
+             L 22 22
+             L 0 90
+             L -22 22
+             L -90 0
+             L -22 -22
+             Z"/>
+  </g>
+
+  <!-- Small sparkle (top right) -->
+  <g transform="translate(360, 150)" fill="#fbbf24">
+    <path d="M 0 -45
+             L 11 -11
+             L 45 0
+             L 11 11
+             L 0 45
+             L -11 11
+             L -45 0
+             L -11 -11
+             Z"/>
+  </g>
+
+  <!-- Tiny sparkle (bottom right) -->
+  <g transform="translate(360, 340)" fill="#fbbf24">
+    <path d="M 0 -30
+             L 7 -7
+             L 30 0
+             L 7 7
+             L 0 30
+             L -7 7
+             L -30 0
+             L -7 -7
+             Z"/>
   </g>
 </svg>
