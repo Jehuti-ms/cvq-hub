@@ -435,7 +435,7 @@ function reportTrainee() {
     const attended = t.attendance.present + t.attendance.late;
     const eligible = attended + t.attendance.absent;
     const rate = eligible ? Math.round((attended / eligible) * 1000) / 10 : null;
-    return { ...t, avg, rate };
+    return { ...t, avg, rate, attended, eligible };
   });
 
   rows.sort((a, b) => String(a.name).localeCompare(String(b.name)));
@@ -461,11 +461,12 @@ function reportTrainee() {
             <tr>
               <th>Name</th>
               <th>ID</th>
-              <th>Marks</th>
-              <th>Avg</th>
-              <th>✅</th>
-              <th>⏰</th>
-              <th>❌</th>
+              <th>📝 Marks</th>
+              <th>📊 Avg</th>
+              <th>🎯 Attended</th>
+              <th>✅ Present</th>
+              <th>⏰ Late</th>
+              <th>❌ Absent</th>
               <th>Rate</th>
             </tr>
           </thead>
@@ -504,8 +505,9 @@ function reportTrainee() {
               ${t.rate != null ? `<div class="report-trainee-rate">${t.rate}%</div>` : ''}
             </div>
             <div class="report-trainee-stats">
-              <div><span class="label">Marks</span><span class="value">${t.marks.length}</span></div>
-              <div><span class="label">Avg</span><span class="value">${t.avg != null ? t.avg + '%' : '—'}</span></div>
+              <div><span class="label">📝 Marks</span><span class="value">${t.marks.length}</span></div>
+              <div><span class="label">📊 Avg</span><span class="value">${t.avg != null ? t.avg + '%' : '—'}</span></div>
+              <div><span class="label">🎯 Attended</span><span class="value">${t.attended}</span></div>
               <div><span class="label">✅ Present</span><span class="value">${t.attendance.present}</span></div>
               <div><span class="label">⏰ Late</span><span class="value">${t.attendance.late}</span></div>
               <div><span class="label">❌ Absent</span><span class="value">${t.attendance.absent}</span></div>
