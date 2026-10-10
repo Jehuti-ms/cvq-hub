@@ -1410,3 +1410,34 @@ button[type='submit']:disabled {
     min-width: 480px; /* forces horizontal scroll rather than squishing */
   }
 }
+
+/* Header icon links (theme toggle, admin gear) — unboxed style */
+.header-controls > a.icon-link,
+#adminLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  color: var(--text-light);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
+
+#adminLink:hover {
+  background: var(--surface-alt);
+  color: var(--primary);
+}
+
+#adminLink:active {
+  transform: scale(0.95);
+}
+
+#adminLink:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
