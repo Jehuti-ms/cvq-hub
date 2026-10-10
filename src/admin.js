@@ -488,62 +488,6 @@ async function toggleUserActive(uid, active, checkboxEl) {
   }
 }
 
-function teacherRowHtml(t) {
-  const isSelf = t.uid === user.uid;
-  const initials = String(t.name || t.email || '?')
-    .split(/[\s@]/)[0]
-    .charAt(0)
-    .toUpperCase();
-
-  const roleBadgeClass = t.role === 'coordinator' ? 'primary' : 'neutral';
-  const activeLabel = t.active ? 'Active' : 'Disabled';
-  const activeBadgeClass = t.active ? 'success' : 'danger';
-
-  // Stats from the overview data (may be missing for users not in stats)
-  const teacherStats = stats?.teachers?.find((x) => x.uid === t.uid);
-  const statsLine = teacherStats
-    ? `${teacherStats.stats.classes} class${teacherStats.stats.classes === 1 ? '' : 'es'} · ${teacherStats.stats.students} trainee${teacherStats.stats.students === 1 ? '' : 's'} · ${teacherStats.stats.hours}h`
-    : '';
-
-  return `
-    <tr style="border-top: 1px solid var(--border-light);">
-      <td style="padding: 12px;">
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--primary-pale); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 600; flex-shrink: 0; overflow: hidden;">
-            ${t.picture ? `<img src="${escapeHtml(t.picture)}" alt="" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'; this.parentNode.textContent='${escapeHtml(initials)}';">` : escapeHtml(initials)}
-          </div>
-          <div style="min-width: 0;">
-            <div style="font-weight: 500; display: flex; align-items: center; gap: 6px;">
-              ${escapeHtml(t.name || t.email.split('@')[0])}
-              ${isSelf ? `<span class="badge primary" style="font-size: 0.65rem;">you</span>` : ''}
-            </div>
-            <div style="font-size: 0.8rem; color: var(--text-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(t.email)}</div>
-            ${statsLine ? `<div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">${statsLine}</div>` : ''}
-          </div>
-        </div>
-      </td>
-      <td style="padding: 12px;">
-        <select data-role-select data-uid="${escapeHtml(t.uid)}"
-                style="padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); font-size: 0.85rem; cursor: pointer; min-width: 130px;">
-          <option value="teacher" ${t.role === 'teacher' ? 'selected' : ''}>👩‍🏫 Teacher</option>
-          <option value="coordinator" ${t.role === 'coordinator' ? 'selected' : ''}>🎯 Coordinator</option>
-        </select>
-      </td>
-      <td style="padding: 12px; text-align: center;">
-        <label style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.8rem;">
-          <input type="checkbox" data-active-toggle data-uid="${escapeHtml(t.uid)}"
-                 ${t.active ? 'checked' : ''}
-                 style="width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer;">
-          <span class="badge ${activeBadgeClass}" style="font-size: 0.7rem;">${activeLabel}</span>
-        </label>
-      </td>
-      <td style="padding: 12px; font-size: 0.85rem; color: var(--text-light);">
-        ${formatRelative(t.lastSeenAt)}
-      </td>
-    </tr>
-  `;
-}
-
 async function changeUserRole(uid, newRole, selectEl) {
   const userRecord = teachers.find((x) => x.uid === uid);
   if (!userRecord) return;
