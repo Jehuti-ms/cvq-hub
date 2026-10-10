@@ -240,6 +240,10 @@ function renderOverview() {
 // STUBS (filled in next message)
 // ============================================================================
 
+// ============================================================================
+// TEACHERS TAB
+// ============================================================================
+
 function renderTeachers() {
   const container = document.getElementById('teachersTable');
   if (!container) return;
@@ -257,7 +261,7 @@ function renderTeachers() {
     return hay.includes(query);
   });
 
-  // Sort by lastSeenAt (most recent first), then by name
+  // Sort: most recently seen first, then by name
   filtered.sort((a, b) => {
     const aTime = a.lastSeenAt ? new Date(a.lastSeenAt).getTime() : 0;
     const bTime = b.lastSeenAt ? new Date(b.lastSeenAt).getTime() : 0;
@@ -272,19 +276,22 @@ function renderTeachers() {
     return;
   }
 
+  const isLastCoordinator = countActiveCoordinators() <= 1;
+
   container.innerHTML = `
     <div style="overflow-x: auto;">
-      <table class="data-table" style="width: 100%; font-size: 0.9rem; border-collapse: collapse; background: var(--surface); border-radius: var(--radius); overflow: hidden;">
+      <table style="width: 100%; font-size: 0.9rem; border-collapse: collapse; background: var(--surface); border-radius: var(--radius); overflow: hidden;">
         <thead>
           <tr>
             <th style="padding: 12px; text-align: left; background: var(--surface-alt); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); letter-spacing: 0.03em;">User</th>
-            <th style="padding: 12px; text-align: left; background: var(--surface-alt); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); letter-spacing: 0.03em;">Role</th>
+            <th style="padding: 12px; text-align: center; background: var(--surface-alt); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); letter-spacing: 0.03em;">Role</th>
             <th style="padding: 12px; text-align: center; background: var(--surface-alt); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); letter-spacing: 0.03em;">Status</th>
-            <th style="padding: 12px; text-align: left; background: var(--surface-alt); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); letter-spacing: 0.03em;">Last seen</th>
+            <th style="padding: 12px; text-align: center; background: var(--surface-alt); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); letter-spacing: 0.03em;">Activity</th>
+            <th style="padding: 12px; text-align: center; background: var(--surface-alt); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); letter-spacing: 0.03em;">Last seen</th>
           </tr>
         </thead>
         <tbody>
-          ${filtered.map((t) => teacherRowHtml(t)).join('')}
+          ${filtered.map((t) => teacherRowHtml(t, isLastCoordinator)).join('')}
         </tbody>
       </table>
     </div>
@@ -307,6 +314,178 @@ function renderTeachers() {
       await toggleUserActive(uid, active, chk);
     });
   });
+}
+
+function countActiveCoordinators() {
+  return teachers.filter(
+    (t) =>
+      t.role === 'coordinator' && (t.active === true || String(t.active).toLowerCase() === 'true')
+  ).length;
+}
+
+function teacherRowHtml(t, isLastCoordinator) {
+  const isSelf = t.uid === user.uid;
+  const initials = String(t.name || t.email || '?')
+    .split(/[\s@]/)[0]
+    .charAt(0)
+    .toUpperCase();
+
+  const activeBool = t.active === true || String(t.active).toLowerCase() === 'true';
+
+  // Prevent the last active coordinator from demoting themselves
+  const demoteDisabled = isSelf && t.role === 'coordinator' && isLastCoordinator;
+
+  // Activity stats (from coordinator stats)
+  const teacherStats = stats?.teachers?.find((x) => x.uid === t.uid);
+  const statsLine = teacherStats
+    ? `${teacherStats.stats.classes} class${teacherStats.stats.classes === 1 ? '' : 'es'} · ${teacherStats.stats.students} trainee${teacherStats.stats.students === 1 ? '' : 's'} · ${teacherStats.stats.hours}h`
+    : 'No activity';
+
+  return `
+    <tr style="border-top: 1px solid var(--border-light);">
+      <td style="padding: 12px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--primary-pale); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 600; flex-shrink: 0; overflow: hidden;">
+            ${
+              t.picture
+                ? `<img src="${escapeHtml(t.picture)}" alt="" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'; this.parentNode.textContent='${escapeHtml(initials)}';">`
+                : escapeHtml(initials)
+            }
+          </div>
+          <div style="min-width: 0;">
+            <div style="font-weight: 500; display: flex; align-items: center; gap: 6px;">
+              ${escapeHtml(t.name || t.email.split('@')[0])}
+              ${isSelf ? `<span class="badge primary" style="font-size: 0.65rem;">you</span>` : ''}
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(t.email)}</div>
+          </div>
+        </div>
+      </td>
+      <td style="padding: 12px; text-align: center;">
+        <select data-role-select data-uid="${escapeHtml(t.uid)}"
+                ${demoteDisabled ? 'disabled title="Cannot demote the last coordinator"' : ''}
+                style="padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); font-size: 0.85rem; cursor: pointer; min-width: 130px; ${demoteDisabled ? 'opacity: 0.6; cursor: not-allowed;' : ''}">
+          <option value="teacher" ${t.role === 'teacher' ? 'selected' : ''}>👩‍🏫 Teacher</option>
+          <option value="coordinator" ${t.role === 'coordinator' ? 'selected' : ''}>🎯 Coordinator</option>
+        </select>
+      </td>
+      <td style="padding: 12px; text-align: center;">
+        <label style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.8rem;">
+          <input type="checkbox" data-active-toggle data-uid="${escapeHtml(t.uid)}"
+                 ${activeBool ? 'checked' : ''}
+                 ${isSelf ? 'disabled title="You cannot disable your own account"' : ''}
+                 style="width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer; ${isSelf ? 'cursor: not-allowed;' : ''}">
+          <span class="badge ${activeBool ? 'success' : 'danger'}" style="font-size: 0.7rem;">
+            ${activeBool ? 'Active' : 'Disabled'}
+          </span>
+        </label>
+      </td>
+      <td style="padding: 12px; text-align: center; font-size: 0.8rem; color: var(--text-light);">
+        ${statsLine}
+      </td>
+      <td style="padding: 12px; text-align: center; font-size: 0.8rem; color: var(--text-light);">
+        ${formatRelative(t.lastSeenAt)}
+      </td>
+    </tr>
+  `;
+}
+
+async function changeUserRole(uid, newRole, selectEl) {
+  const userRecord = teachers.find((x) => x.uid === uid);
+  if (!userRecord) return;
+
+  const targetLabel = userRecord.name || userRecord.email;
+  const oldRole = userRecord.role;
+
+  if (oldRole === newRole) return;
+
+  // Safety: prevent removing the last active coordinator
+  if (oldRole === 'coordinator' && newRole === 'teacher' && countActiveCoordinators() <= 1) {
+    alert(
+      "Can't demote the last active coordinator.\n\n" +
+        'Promote someone else to coordinator first, then demote this account.'
+    );
+    selectEl.value = oldRole;
+    return;
+  }
+
+  // Confirm significant role changes
+  if (newRole === 'coordinator') {
+    const ok = confirm(
+      `Promote ${targetLabel} to coordinator?\n\n` +
+        'Coordinators can see all teachers, classes, and trainees. ' +
+        'Only do this for trusted staff.'
+    );
+    if (!ok) {
+      selectEl.value = oldRole;
+      return;
+    }
+  }
+
+  if (oldRole === 'coordinator' && newRole === 'teacher') {
+    const ok = confirm(
+      `Demote ${targetLabel} back to teacher?\n\n` +
+        'They will lose access to the coordinator panel.'
+    );
+    if (!ok) {
+      selectEl.value = oldRole;
+      return;
+    }
+  }
+
+  selectEl.disabled = true;
+
+  try {
+    await api.call('setUserRole', { id: uid, role: newRole });
+    userRecord.role = newRole;
+    toast(`${targetLabel} is now a ${newRole}`, 'success');
+    renderTeachers();
+  } catch (err) {
+    console.error('[admin] role change failed:', err);
+    toast(`Failed: ${err.message}`, 'error');
+    selectEl.value = oldRole;
+  } finally {
+    selectEl.disabled = false;
+  }
+}
+
+async function toggleUserActive(uid, active, checkboxEl) {
+  const userRecord = teachers.find((x) => x.uid === uid);
+  if (!userRecord) return;
+
+  const targetLabel = userRecord.name || userRecord.email;
+
+  if (!active && uid === user.uid) {
+    alert("You can't disable your own account.");
+    checkboxEl.checked = true;
+    return;
+  }
+
+  if (!active) {
+    const ok = confirm(
+      `Disable ${targetLabel}?\n\n` +
+        "They won't be able to log in or make any changes until you re-enable them."
+    );
+    if (!ok) {
+      checkboxEl.checked = true;
+      return;
+    }
+  }
+
+  checkboxEl.disabled = true;
+
+  try {
+    await api.call('updateUser', { id: uid, patch: { active: active } });
+    userRecord.active = active;
+    toast(`${targetLabel} ${active ? 'enabled' : 'disabled'}`, 'success');
+    renderTeachers();
+  } catch (err) {
+    console.error('[admin] toggle active failed:', err);
+    toast(`Failed: ${err.message}`, 'error');
+    checkboxEl.checked = !active;
+  } finally {
+    checkboxEl.disabled = false;
+  }
 }
 
 function teacherRowHtml(t) {
