@@ -1231,6 +1231,28 @@ button[type='submit']:disabled {
   border: 1px solid var(--border-light);
   font-family: var(--font);
   line-height: 1.6;
+  overflow-x: auto;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 640px) {
+  .reports-printable {
+    padding: 12px;
+  }
+  .reports-printable h2 {
+    font-size: 1.25rem;
+  }
+  .reports-printable h3 {
+    font-size: 1rem;
+  }
+  .reports-printable table {
+    font-size: 0.75rem;
+  }
+  .reports-printable th,
+  .reports-printable td {
+    padding: 6px 4px;
+  }
 }
 
 [data-theme='dark'] .reports-printable {
@@ -1340,5 +1362,51 @@ button[type='submit']:disabled {
   .reports-printable {
     border: none;
     padding: 0;
+  }
+}
+
+/* Reports — header buttons */
+#reportsOutputCard .section-header {
+  align-items: flex-start;
+}
+
+#reportsOutputCard .section-header > div {
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  #reportsOutputCard .section-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  #reportsOutputCard .section-header h3 {
+    font-size: 1.1rem;
+  }
+
+  #reportsOutputCard .section-header > div {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    width: 100%;
+  }
+
+  #reportsOutputCard .section-header .button {
+    width: 100%;
+    min-height: 36px;
+    font-size: 0.8rem;
+    padding: 6px 8px;
+  }
+
+  #reportsOutputCard .section-header .button:first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Trainee progress report table — mobile-friendly */
+@media (max-width: 640px) {
+  .reports-printable table {
+    min-width: 480px; /* forces horizontal scroll rather than squishing */
   }
 }
