@@ -164,9 +164,19 @@ function route_(action, body, user, role) {
     case 'listUsers':
       if (!isCoordinator) throw new Error('Forbidden: coordinator only');
       return readSheet_('Users');
+
     case 'setUserRole':
       if (!isCoordinator) throw new Error('Forbidden: coordinator only');
       return updateRow_('Users', body.id, { role: body.role });
+
+    // ---------- COORDINATOR STATS ----------
+    case 'getCoordinatorStats':
+      if (!isCoordinator) throw new Error('Forbidden: coordinator only');
+      return getCoordinatorStats_();
+
+    case 'listAuditLog':
+      if (!isCoordinator) throw new Error('Forbidden: coordinator only');
+      return readSheet_('AuditLog');
 
     default:
       throw new Error('Unknown action: ' + action);
@@ -415,6 +425,96 @@ function getEvidenceFolderId_() {
   }
 
   return folderId;
+}
+
+// ============================================================================
+// COORDINATOR STATS
+// ============================================================================
+
+function getCoordinatorStats_() {
+  const users = readSheet_('Users');
+  const classes = readSheet_('Classes');
+  const students = readSheet_('Students');
+  const worklogs = readSheet_('Worklogs');
+  const marks = readSheet_('Marks');
+  const attendance = readSheet_('Attendance');
+  const media = readSheet_('Media');
+
+  // Helper: count by teacherId
+  function countByTeacher(rows) {
+    const map = {};
+    rows.forEach((r) => {
+      const id = r.teacherId || '';
+      if (!id) return;
+      map[id] = (map[id] || 0) + 1;
+    });
+    return map;
+  }
+
+  // Helper: sum hours by teacherId
+  function hoursByTeacher(rows) {
+    const map = {};
+    rows.forEach((r) => {
+      const id = r.teacherId || '';
+      if (!id) return;
+      const hours = (parseFloat(r.duration) || 0) * (parseInt(r.sessions, 10) || 1);
+      map[id] = (map[id] || 0) + hours;
+    });
+    return map;
+  }
+
+  const classesByTeacher = countByTeacher(classes);
+  const studentsByTeacher = countByTeacher(students);
+  const worklogsByTeacher = countByTeacher(worklogs);
+  const marksByTeacher = countByTeacher(marks);
+  const attendanceByTeacher = countByTeacher(attendance);
+  const mediaByTeacher = countByTeacher(media);
+  const hoursByTeacherMap = hoursByTeacher(worklogs);
+
+  // Per-teacher summary
+  const teachers = users.map((u) => ({
+    uid: u.id,
+    email: u.email,
+    name: u.name || '',
+    picture: u.picture || '',
+    role: u.role || 'teacher',
+    active: u.active === true || String(u.active).toLowerCase() === 'true',
+    lastSeenAt: u.lastSeenAt || '',
+    createdAt: u.createdAt || '',
+    stats: {
+      classes: classesByTeacher[u.id] || 0,
+      students: studentsByTeacher[u.id] || 0,
+      worklogs: worklogsByTeacher[u.id] || 0,
+      marks: marksByTeacher[u.id] || 0,
+      attendance: attendanceByTeacher[u.id] || 0,
+      media: mediaByTeacher[u.id] || 0,
+      hours: Math.round((hoursByTeacherMap[u.id] || 0) * 10) / 10,
+    },
+  }));
+
+  // Totals across the whole system
+  const totalHours = worklogs.reduce((sum, w) => {
+    return sum + (parseFloat(w.duration) || 0) * (parseInt(w.sessions, 10) || 1);
+  }, 0);
+
+  return {
+    totals: {
+      teachers: users.length,
+      coordinators: users.filter((u) => u.role === 'coordinator').length,
+      activeTeachers: users.filter(
+        (u) => u.active === true || String(u.active).toLowerCase() === 'true'
+      ).length,
+      classes: classes.length,
+      students: students.length,
+      worklogs: worklogs.length,
+      marks: marks.length,
+      attendance: attendance.length,
+      media: media.length,
+      hours: Math.round(totalHours * 10) / 10,
+    },
+    teachers,
+    generatedAt: new Date().toISOString(),
+  };
 }
 
 // ============================================================================

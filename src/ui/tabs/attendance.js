@@ -310,13 +310,22 @@ async function saveAll() {
     els.saveBtn.textContent = '⏳ Saving…';
   }
 
-    let saved = 0;
+  let saved = 0;
   let queued = 0;
   let failed = 0;
 
   for (const t of trainees) {
     const status = rosterState[t.id] || 'present';
-    const payload = { ... };
+    const payload = {
+      classId: activeClassId,
+      studentId: t.id,
+      studentName: t.name,
+      date,
+      status,
+      subject: unit,
+      topic,
+      notes,
+    };
 
     try {
       const result = await api.call('createAttendance', payload);
@@ -337,7 +346,7 @@ async function saveAll() {
     els.saveBtn.textContent = '💾 Save attendance';
   }
 
-    if (failed) {
+  if (failed) {
     toast(`${saved} saved · ${queued} queued · ${failed} failed`, 'warning');
   } else if (queued) {
     toast(`${saved} saved · ${queued} queued (will sync when online)`, 'info');

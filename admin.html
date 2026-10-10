@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+    <meta name="description" content="CVQ Hub coordinator panel" />
+    <meta name="theme-color" content="#0f766e" />
+    <title>Coordinator · CVQ Hub</title>
+    <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="96x96" href="icons/favicon-96x96.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="stylesheet" href="styles/main.css" />
+
+    <style>
+      /* Admin-only styles */
+      .admin-header {
+        background: linear-gradient(135deg, #0f766e 0%, #0b5a54 100%);
+        color: white;
+        padding: 20px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .admin-header .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .admin-header .brand h1 {
+        margin: 0;
+        font-size: 1.25rem;
+        color: white;
+        font-weight: 600;
+      }
+
+      .admin-header .badge-admin {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .admin-header .user-chip {
+        background: rgba(255, 255, 255, 0.15);
+        border-color: rgba(255, 255, 255, 0.3);
+        color: white;
+      }
+
+      .admin-tabs {
+        display: flex;
+        gap: 4px;
+        padding: 8px 24px 0;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        overflow-x: auto;
+      }
+
+      .admin-tab {
+        padding: 10px 16px;
+        border: none;
+        background: transparent;
+        color: var(--text-light);
+        font-size: var(--text-sm);
+        font-weight: 500;
+        border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+        cursor: pointer;
+        white-space: nowrap;
+        border-bottom: 2px solid transparent;
+        transition: all 0.15s;
+      }
+
+      .admin-tab:hover {
+        color: var(--text);
+        background: var(--surface-alt);
+      }
+      .admin-tab.active {
+        color: var(--primary);
+        border-bottom-color: var(--primary);
+        font-weight: 600;
+      }
+
+      .admin-tabcontent {
+        display: none;
+        padding: 24px;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      .admin-tabcontent.active {
+        display: block;
+      }
+
+      .stat-tile {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 20px;
+        text-align: center;
+        transition: all 0.15s;
+      }
+
+      .stat-tile:hover {
+        border-color: var(--primary-light);
+        box-shadow: var(--shadow);
+      }
+
+      .stat-tile .value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--primary);
+        line-height: 1.1;
+        margin-bottom: 4px;
+      }
+
+      .stat-tile .label {
+        font-size: 0.8rem;
+        color: var(--text-light);
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+
+      /* Denied screen */
+      .denied {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--background);
+        padding: 20px;
+      }
+      .denied-card {
+        max-width: 400px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 40px 32px;
+        text-align: center;
+        box-shadow: var(--shadow-lg);
+      }
+      .denied-icon {
+        font-size: 3rem;
+        margin-bottom: 16px;
+      }
+      .denied h2 {
+        margin-bottom: 12px;
+      }
+      .denied p {
+        color: var(--text-light);
+        margin-bottom: 24px;
+        line-height: 1.6;
+      }
+
+      /* Loading */
+      .admin-loading {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-light);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Denied view (shown when not coordinator) -->
+    <div class="denied" id="deniedView" style="display: none">
+      <div class="denied-card">
+        <div class="denied-icon">🔒</div>
+        <h2>Coordinator access required</h2>
+        <p>
+          This page is only available to users with the <strong>coordinator</strong> role. Ask your
+          programme administrator to grant you access.
+        </p>
+        <a href="index.html" class="button primary" style="display: block"
+          >← Back to my dashboard</a
+        >
+      </div>
+    </div>
+
+    <!-- Main admin view (shown when coordinator) -->
+    <div id="adminView" style="display: none">
+      <header class="admin-header">
+        <div class="brand">
+          <svg
+            width="32"
+            height="32"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+            <path d="M6 12v5c3 3 9 3 12 0v-5" />
+          </svg>
+          <h1>CVQ Hub</h1>
+          <span class="badge-admin">Coordinator</span>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap">
+          <a
+            href="index.html"
+            class="button"
+            style="
+              background: rgba(255, 255, 255, 0.15);
+              border-color: rgba(255, 255, 255, 0.3);
+              color: white;
+            "
+          >
+            ← My dashboard
+          </a>
+          <div
+            class="user-chip"
+            id="adminUserChip"
+            style="
+              padding: 4px 12px 4px 4px;
+              border-radius: 24px;
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              font-size: 0.85rem;
+            "
+          >
+            <span id="adminUserName">…</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="admin-tabs">
+        <button class="admin-tab active" data-admin-tab="overview">📊 Overview</button>
+        <button class="admin-tab" data-admin-tab="teachers">👩‍🏫 Teachers</button>
+        <button class="admin-tab" data-admin-tab="classes">🏫 All classes</button>
+        <button class="admin-tab" data-admin-tab="trainees">👨‍🎓 All trainees</button>
+        <button class="admin-tab" data-admin-tab="audit">📜 Audit log</button>
+      </div>
+
+      <!-- OVERVIEW -->
+      <section id="admin-overview" class="admin-tabcontent active">
+        <div class="section-header">
+          <h2>System overview</h2>
+          <span class="stat-text" id="adminLastUpdated">Loading…</span>
+        </div>
+
+        <div
+          class="stat-grid"
+          id="overviewTiles"
+          style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr))"
+        >
+          <div class="admin-loading">Loading stats…</div>
+        </div>
+
+        <div class="section-card" style="margin-top: 24px">
+          <h3>👩‍🏫 Per-teacher activity</h3>
+          <p style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 16px">
+            Sorted by hours logged. Only teachers with activity appear here.
+          </p>
+          <div id="overviewTeachers">
+            <p class="empty-message">Loading…</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- TEACHERS -->
+      <section id="admin-teachers" class="admin-tabcontent">
+        <div class="section-header">
+          <h2>All teachers</h2>
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap">
+            <input
+              type="search"
+              id="teacherSearch"
+              placeholder="🔍 Search…"
+              style="
+                padding: 8px 12px;
+                border: 1px solid var(--border);
+                border-radius: var(--radius-sm);
+                font-size: var(--text-sm);
+              "
+            />
+            <select
+              id="teacherFilter"
+              style="
+                padding: 8px 12px;
+                border: 1px solid var(--border);
+                border-radius: var(--radius-sm);
+                font-size: var(--text-sm);
+              "
+            >
+              <option value="">All roles</option>
+              <option value="teacher">Teachers only</option>
+              <option value="coordinator">Coordinators only</option>
+            </select>
+          </div>
+        </div>
+        <div id="teachersTable">
+          <p class="empty-message">Loading…</p>
+        </div>
+      </section>
+
+      <!-- CLASSES -->
+      <section id="admin-classes" class="admin-tabcontent">
+        <div class="section-header">
+          <h2>All classes</h2>
+          <input
+            type="search"
+            id="classSearch"
+            placeholder="🔍 Search…"
+            style="
+              padding: 8px 12px;
+              border: 1px solid var(--border);
+              border-radius: var(--radius-sm);
+              font-size: var(--text-sm);
+            "
+          />
+        </div>
+        <div id="classesTable">
+          <p class="empty-message">Loading…</p>
+        </div>
+      </section>
+
+      <!-- TRAINEES -->
+      <section id="admin-trainees" class="admin-tabcontent">
+        <div class="section-header">
+          <h2>All trainees</h2>
+          <input
+            type="search"
+            id="traineeSearchAdmin"
+            placeholder="🔍 Search by name or ID…"
+            style="
+              padding: 8px 12px;
+              border: 1px solid var(--border);
+              border-radius: var(--radius-sm);
+              font-size: var(--text-sm);
+            "
+          />
+        </div>
+        <div id="traineesTableAdmin">
+          <p class="empty-message">Loading…</p>
+        </div>
+      </section>
+
+      <!-- AUDIT -->
+      <section id="admin-audit" class="admin-tabcontent">
+        <div class="section-header">
+          <h2>Audit log</h2>
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap">
+            <input
+              type="search"
+              id="auditSearch"
+              placeholder="🔍 Search by user or action…"
+              style="
+                padding: 8px 12px;
+                border: 1px solid var(--border);
+                border-radius: var(--radius-sm);
+                font-size: var(--text-sm);
+              "
+            />
+            <select
+              id="auditFilter"
+              style="
+                padding: 8px 12px;
+                border: 1px solid var(--border);
+                border-radius: var(--radius-sm);
+                font-size: var(--text-sm);
+              "
+            >
+              <option value="">All actions</option>
+              <option value="create">Creates</option>
+              <option value="update">Updates</option>
+              <option value="delete">Deletes</option>
+              <option value="upload">Uploads</option>
+            </select>
+          </div>
+        </div>
+        <div id="auditTable">
+          <p class="empty-message">Loading…</p>
+        </div>
+      </section>
+    </div>
+
+    <script type="module" src="./src/admin.js"></script>
+  </body>
+</html>
