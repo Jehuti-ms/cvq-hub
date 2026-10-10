@@ -513,6 +513,19 @@
         </div>
       </section>
     </div>
+    <script>
+      // Warm up Apps Script in parallel with module loading
+      (function warmup() {
+        const APPS_SCRIPT_URL =
+          'https://script.google.com/macros/s/AKfycbyHfRJDq6U24FtMfHihS1ZtEU41hApq9Uw5dWLmze8qYEe-ZemMkxG68D3-FtXxbw3u/exec';
+        if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('PASTE_YOUR')) return;
+        fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'ping' }),
+        }).catch(() => {});
+      })();
+    </script>
 
     <script type="module" src="./src/admin.js"></script>
   </body>

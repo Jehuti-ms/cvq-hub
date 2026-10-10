@@ -21,7 +21,7 @@ let audit = [];
 // ============================================================================
 
 (async function boot() {
-  // Auth guard
+  // ---------- Auth guard ----------
   const token = localStorage.getItem('cvq_idToken');
   const userRaw = localStorage.getItem('cvq_user');
 
@@ -39,44 +39,104 @@ let audit = [];
     return;
   }
 
-  // Set user name in header
   const nameEl = document.getElementById('adminUserName');
   if (nameEl) nameEl.textContent = user.name || user.email;
 
-  // Load initial data — try to fetch coordinator stats.
-  // If backend says forbidden, show denied view.
-  try {
-    stats = await api.call('getCoordinatorStats');
-  } catch (err) {
-    if (/Forbidden/i.test(err.message)) {
-      showDenied();
-      return;
+  // ---------- Check cache first ----------
+  const CACHE_KEY = 'cvq_adminBootCache';
+  const CACHE_TTL_MS = 60 * 1000; // 60 seconds
+
+  function readCache() {
+    try {
+      const raw = localStorage.getItem(CACHE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!parsed.ts || Date.now() - parsed.ts > CACHE_TTL_MS) return null;
+      return parsed.data;
+    } catch {
+      return null;
     }
-    console.error('[admin] stats failed:', err);
+  }
+
+  function writeCache(data) {
+    try {
+      localStorage.setItem(CACHE_KEY, JSON.stringify({ data, ts: Date.now() }));
+    } catch {}
+  }
+
+  // ---------- Try cache ----------
+  const cached = readCache();
+  if (cached) {
+    console.log('[admin] Using cached boot data');
+    applyBootData(cached);
+    showAdmin();
+    renderOverview();
+    wireEvents();
+
+    // Refresh in background
+    refreshBootData().then((fresh) => {
+      if (fresh) {
+        applyBootData(fresh);
+        renderOverview();
+      }
+    });
+    return;
+  }
+
+  // ---------- No cache — fetch fresh ----------
+  console.log('[admin] Fetching boot data (single batch call)…');
+  const fresh = await refreshBootData();
+  if (!fresh) {
     showDenied();
     return;
   }
 
-  // Load the other datasets in parallel
-  try {
-    const [u, c, t, a] = await Promise.all([
-      api.call('listUsers').catch(() => []),
-      api.call('listClasses').catch(() => []),
-      api.call('listStudents').catch(() => []),
-      api.call('listAuditLog').catch(() => []),
-    ]);
-    teachers = (u || []).map((row) => ({ ...row, uid: row.id }));
-    classes = c || [];
-    trainees = t || [];
-    audit = a || [];
-  } catch (err) {
-    console.warn('[admin] some datasets failed:', err);
-  }
-
+  applyBootData(fresh);
   showAdmin();
   renderOverview();
   wireEvents();
 })();
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function applyBootData(data) {
+  stats = data.stats || null;
+  teachers = (data.users || []).map((row) => ({ ...row, uid: row.id }));
+  classes = data.classes || [];
+  trainees = data.students || [];
+  audit = data.audit || [];
+}
+
+async function refreshBootData() {
+  try {
+    const { api } = await import('./api/client.js');
+    const data = await api.call('getAdminBoot');
+    writeCacheSafe(data);
+    return data;
+  } catch (err) {
+    console.error('[admin] boot fetch failed:', err);
+    if (/Forbidden/i.test(err.message)) {
+      showDenied();
+    }
+    return null;
+  }
+}
+
+function writeCacheSafe(data) {
+  try {
+    localStorage.setItem(
+      'cvq_adminBootCache',
+      JSON.stringify({
+        data,
+        ts: Date.now(),
+      })
+    );
+  } catch (e) {
+    console.warn('[admin] cache write failed:', e.message);
+  }
+}
 
 // ============================================================================
 // VIEW TOGGLES

@@ -1936,35 +1936,31 @@
         localStorage.getItem('cvq_demo') === 'true'
       );
 
-      // ---------- Boot class management first ----------
+      // ---------- Boot class management first (needed by tabs) ----------
       const { init: initClassModal } = await import('./src/ui/classModal.js');
       await initClassModal();
       console.log('[dashboard] Class manager booted');
 
-      // ---------- Then feature tabs ----------
-      const { init: initTrainees } = await import('./src/ui/tabs/trainees.js');
-      await initTrainees();
-      console.log('[dashboard] Trainees tab booted');
+      // ---------- Boot all feature tabs in parallel ----------
+      const [traineesMod, worklogMod, marksMod, attendanceMod, effortMod, reportsMod] =
+        await Promise.all([
+          import('./src/ui/tabs/trainees.js'),
+          import('./src/ui/tabs/worklog.js'),
+          import('./src/ui/tabs/marks.js'),
+          import('./src/ui/tabs/attendance.js'),
+          import('./src/ui/tabs/effort.js'),
+          import('./src/ui/tabs/reports.js'),
+        ]);
 
-      const { init: initWorklog } = await import('./src/ui/tabs/worklog.js');
-      await initWorklog();
-      console.log('[dashboard] Worklog tab booted');
-
-      const { init: initMarks } = await import('./src/ui/tabs/marks.js');
-      await initMarks();
-      console.log('[dashboard] Marks tab booted');
-
-      const { init: initAttendance } = await import('./src/ui/tabs/attendance.js');
-      await initAttendance();
-      console.log('[dashboard] Attendance tab booted');
-
-      const { init: initEffort } = await import('./src/ui/tabs/effort.js');
-      await initEffort();
-      console.log('[dashboard] Effort tab booted');
-
-      const { init: initReports } = await import('./src/ui/tabs/reports.js');
-      await initReports();
-      console.log('[dashboard] Reports tab booted');
+      await Promise.all([
+        traineesMod.init(),
+        worklogMod.init(),
+        marksMod.init(),
+        attendanceMod.init(),
+        effortMod.init(),
+        reportsMod.init(),
+      ]);
+      console.log('[dashboard] All feature tabs booted');
     </script>
   </body>
 </html>
