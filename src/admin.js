@@ -594,17 +594,316 @@ async function toggleUserActive(uid, active, checkboxEl) {
   }
 }
 
+// ============================================================================
+// ALL CLASSES TAB
+// ============================================================================
+
 function renderClasses() {
-  document.getElementById('classesTable').innerHTML = `<p class="empty-message">Coming next…</p>`;
+  const container = document.getElementById('classesTable');
+  if (!container) return;
+
+  const searchEl = document.getElementById('classSearch');
+  const query = (searchEl?.value || '').trim().toLowerCase();
+
+  let filtered = classes.filter((c) => {
+    if (!query) return true;
+    const teacher = teachers.find((t) => t.uid === c.teacherId);
+    const hay = [c.name, c.subject, c.description, teacher?.name, teacher?.email]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+    return hay.includes(query);
+  });
+
+  filtered.sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+
+  if (!filtered.length) {
+    container.innerHTML = classes.length
+      ? `<p class="empty-message">No matches for "${escapeHtml(query)}".</p>`
+      : `<p class="empty-message">No classes yet.</p>`;
+    return;
+  }
+
+  const rowsHtml = filtered
+    .map((c) => {
+      const owner = teachers.find((t) => t.uid === c.teacherId);
+      const ownerName = owner?.name || owner?.email || '—';
+      const traineeCount = trainees.filter((t) => String(t.classId) === String(c.id)).length;
+      const worklogCount = stats?.teachers?.reduce((sum, t) => sum + t.stats.classes, 0) || 0; // fallback
+      return `
+      <tr style="border-top: 1px solid var(--border-light);">
+        <td style="padding: 12px 8px;">
+          <div style="font-weight: 500;">${escapeHtml(c.name || '—')}</div>
+          <div style="font-size: 0.75rem; color: var(--text-light);">${escapeHtml(c.subject || '')}${c.description ? ' · ' + escapeHtml(c.description) : ''}</div>
+        </td>
+        <td style="padding: 12px 8px; text-align: center; font-size: 0.85rem;">${escapeHtml(ownerName)}</td>
+        <td style="padding: 12px 8px; text-align: center;">${traineeCount}</td>
+        <td style="padding: 12px 8px; text-align: center; font-size: 0.8rem; color: var(--text-light);">${formatRelative(c.createdAt)}</td>
+      </tr>
+    `;
+    })
+    .join('');
+
+  const cardsHtml = filtered
+    .map((c) => {
+      const owner = teachers.find((t) => t.uid === c.teacherId);
+      const ownerName = owner?.name || owner?.email || '—';
+      const traineeCount = trainees.filter((t) => String(t.classId) === String(c.id)).length;
+      return `
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <div class="admin-card-avatar" style="background: var(--primary-pale); color: var(--primary);">📚</div>
+          <div style="min-width: 0; flex: 1;">
+            <div class="admin-card-title">${escapeHtml(c.name || 'Untitled class')}</div>
+            <div class="admin-card-subtitle">${escapeHtml(c.subject || 'No subject')}</div>
+            ${c.description ? `<div class="admin-card-subtitle" style="color: var(--text-muted);">${escapeHtml(c.description)}</div>` : ''}
+          </div>
+        </div>
+        <div class="admin-card-stats">
+          <div><div class="value">${traineeCount}</div><div class="label">Trainees</div></div>
+          <div><div class="value" style="font-size: 0.75rem; word-break: break-word;">${escapeHtml(ownerName)}</div><div class="label">Teacher</div></div>
+          <div><div class="value" style="font-size: 0.75rem;">${formatRelative(c.createdAt)}</div><div class="label">Created</div></div>
+        </div>
+      </div>
+    `;
+    })
+    .join('');
+
+  container.innerHTML = `
+    <div class="admin-table-view" style="overflow-x: auto;">
+      <table style="width: 100%; font-size: 0.9rem; border-collapse: collapse; background: var(--surface); border-radius: var(--radius); overflow: hidden;">
+        <thead>
+          <tr>
+            <th style="padding: 12px 8px; text-align: left; background: var(--surface-alt); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); letter-spacing: 0.03em;">Class</th>
+            <th style="padding: 12px 8px; text-align: center; background: var(--surface-alt); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); letter-spacing: 0.03em;">Teacher</th>
+            <th style="padding: 12px 8px; text-align: center; background: var(--surface-alt); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); letter-spacing: 0.03em;">Trainees</th>
+            <th style="padding: 12px 8px; text-align: center; background: var(--surface-alt); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); letter-spacing: 0.03em;">Created</th>
+          </tr>
+        </thead>
+        <tbody>${rowsHtml}</tbody>
+      </table>
+    </div>
+    <div class="admin-card-view admin-card-list">${cardsHtml}</div>
+  `;
 }
+
+// ============================================================================
+// ALL TRAINEES TAB
+// ============================================================================
 
 function renderTrainees() {
-  document.getElementById('traineesTableAdmin').innerHTML =
-    `<p class="empty-message">Coming next…</p>`;
+  const container = document.getElementById('traineesTableAdmin');
+  if (!container) return;
+
+  const searchEl = document.getElementById('traineeSearchAdmin');
+  const query = (searchEl?.value || '').trim().toLowerCase();
+
+  let filtered = trainees.filter((s) => {
+    if (!query) return true;
+    const hay = [s.name, s.studentId, s.email, s.phone].filter(Boolean).join(' ').toLowerCase();
+    return hay.includes(query);
+  });
+
+  filtered.sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+
+  if (!filtered.length) {
+    container.innerHTML = trainees.length
+      ? `<p class="empty-message">No matches for "${escapeHtml(query)}".</p>`
+      : `<p class="empty-message">No trainees yet.</p>`;
+    return;
+  }
+
+  const rowsHtml = filtered
+    .map((s) => {
+      const cls = classes.find((c) => String(c.id) === String(s.classId));
+      const teacher = teachers.find((t) => t.uid === s.teacherId);
+      return `
+      <tr style="border-top: 1px solid var(--border-light);">
+        <td style="padding: 12px 8px;">
+          <div style="font-weight: 500;">${escapeHtml(s.name || '—')}</div>
+          <div style="font-size: 0.75rem; color: var(--text-light);">${escapeHtml(s.email || s.phone || '')}</div>
+        </td>
+        <td style="padding: 12px 8px; text-align: center; font-size: 0.85rem; font-family: var(--font-mono);">${escapeHtml(s.studentId || '—')}</td>
+        <td style="padding: 12px 8px; text-align: center; font-size: 0.85rem;">${escapeHtml(cls?.name || '—')}</td>
+        <td style="padding: 12px 8px; text-align: center; font-size: 0.85rem;">${escapeHtml(teacher?.name || teacher?.email || '—')}</td>
+        <td style="padding: 12px 8px; text-align: center; font-size: 0.8rem; color: var(--text-light);">${formatRelative(s.createdAt)}</td>
+      </tr>
+    `;
+    })
+    .join('');
+
+  const cardsHtml = filtered
+    .map((s) => {
+      const cls = classes.find((c) => String(c.id) === String(s.classId));
+      const initials = String(s.name || '?')
+        .charAt(0)
+        .toUpperCase();
+      return `
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <div class="admin-card-avatar">${escapeHtml(initials)}</div>
+          <div style="min-width: 0; flex: 1;">
+            <div class="admin-card-title">${escapeHtml(s.name || 'Untitled')}</div>
+            <div class="admin-card-subtitle">${escapeHtml(s.studentId || '')}</div>
+            <div class="admin-card-subtitle" style="color: var(--text-muted); margin-top: 2px;">${escapeHtml(cls?.name || 'No class')}</div>
+          </div>
+        </div>
+      </div>
+    `;
+    })
+    .join('');
+
+  container.innerHTML = `
+    <div class="admin-table-view" style="overflow-x: auto;">
+      <table style="width: 100%; font-size: 0.9rem; border-collapse: collapse; background: var(--surface); border-radius: var(--radius); overflow: hidden;">
+        <thead>
+          <tr>
+            <th style="padding: 12px 8px; text-align: left; background: var(--surface-alt); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); letter-spacing: 0.03em;">Trainee</th>
+            <th style="padding: 12px 8px; text-align: center; background: var(--surface-alt); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); letter-spacing: 0.03em;">ID</th>
+            <th style="padding: 12px 8px; text-align: center; background: var(--surface-alt); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); letter-spacing: 0.03em;">Class</th>
+            <th style="padding: 12px 8px; text-align: center; background: var(--surface-alt); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); letter-spacing: 0.03em;">Teacher</th>
+            <th style="padding: 12px 8px; text-align: center; background: var(--surface-alt); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); letter-spacing: 0.03em;">Added</th>
+          </tr>
+        </thead>
+        <tbody>${rowsHtml}</tbody>
+      </table>
+    </div>
+    <div class="admin-card-view admin-card-list">${cardsHtml}</div>
+  `;
 }
 
+// ============================================================================
+// AUDIT LOG TAB
+// ============================================================================
+
 function renderAudit() {
-  document.getElementById('auditTable').innerHTML = `<p class="empty-message">Coming next…</p>`;
+  const container = document.getElementById('auditTable');
+  if (!container) return;
+
+  const searchEl = document.getElementById('auditSearch');
+  const filterEl = document.getElementById('auditFilter');
+  const query = (searchEl?.value || '').trim().toLowerCase();
+  const filter = filterEl?.value || '';
+
+  let filtered = audit.filter((a) => {
+    if (
+      filter &&
+      !String(a.action || '')
+        .toLowerCase()
+        .startsWith(filter)
+    )
+      return false;
+    if (!query) return true;
+    const hay = [a.email, a.action, a.targetSheet, a.targetId]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+    return hay.includes(query);
+  });
+
+  // Sort newest first
+  filtered.sort((a, b) => String(b.timestamp || '').localeCompare(String(a.timestamp || '')));
+
+  // Cap at 200 most recent to keep DOM light
+  const trimmed = filtered.slice(0, 200);
+
+  if (!trimmed.length) {
+    container.innerHTML = audit.length
+      ? `<p class="empty-message">No matches for "${escapeHtml(query)}".</p>`
+      : `<p class="empty-message">No audit entries yet.</p>`;
+    return;
+  }
+
+  const rowsHtml = trimmed
+    .map((a) => {
+      const action = String(a.action || '');
+      let verb = 'changed';
+      let badge = 'neutral';
+      if (action.startsWith('create')) {
+        verb = 'created';
+        badge = 'success';
+      } else if (action.startsWith('update')) {
+        verb = 'updated';
+        badge = 'info';
+      } else if (action.startsWith('delete')) {
+        verb = 'deleted';
+        badge = 'danger';
+      } else if (action.startsWith('upload')) {
+        verb = 'uploaded';
+        badge = 'warning';
+      }
+
+      const target = action.replace(/^(create|update|delete|upload)/, '') || a.targetSheet || '';
+
+      return `
+      <tr style="border-top: 1px solid var(--border-light);">
+        <td style="padding: 12px 8px; font-size: 0.85rem; white-space: nowrap;">${formatRelative(a.timestamp)}</td>
+        <td style="padding: 12px 8px; font-size: 0.85rem;">${escapeHtml(a.email || a.userId || '—')}</td>
+        <td style="padding: 12px 8px; text-align: center;">
+          <span class="badge ${badge}" style="font-size: 0.7rem;">${verb} ${escapeHtml(target)}</span>
+        </td>
+        <td style="padding: 12px 8px; font-size: 0.75rem; font-family: var(--font-mono); color: var(--text-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;">${escapeHtml(a.targetId || '')}</td>
+      </tr>
+    `;
+    })
+    .join('');
+
+  const cardsHtml = trimmed
+    .map((a) => {
+      const action = String(a.action || '');
+      let verb = 'changed';
+      let badge = 'neutral';
+      if (action.startsWith('create')) {
+        verb = 'created';
+        badge = 'success';
+      } else if (action.startsWith('update')) {
+        verb = 'updated';
+        badge = 'info';
+      } else if (action.startsWith('delete')) {
+        verb = 'deleted';
+        badge = 'danger';
+      } else if (action.startsWith('upload')) {
+        verb = 'uploaded';
+        badge = 'warning';
+      }
+
+      const target = action.replace(/^(create|update|delete|upload)/, '') || a.targetSheet || '';
+
+      return `
+      <div class="admin-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <span class="badge ${badge}" style="font-size: 0.75rem;">${verb} ${escapeHtml(target)}</span>
+          <span style="font-size: 0.75rem; color: var(--text-light);">${formatRelative(a.timestamp)}</span>
+        </div>
+        <div style="font-size: 0.85rem; color: var(--text);">
+          <strong>${escapeHtml(a.email || a.userId || '—')}</strong>
+        </div>
+        ${a.targetId ? `<div style="font-size: 0.7rem; color: var(--text-muted); font-family: var(--font-mono); overflow: hidden; text-overflow: ellipsis;">${escapeHtml(a.targetId)}</div>` : ''}
+      </div>
+    `;
+    })
+    .join('');
+
+  container.innerHTML = `
+    <div style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 12px; text-align: center;">
+      Showing ${trimmed.length} of ${filtered.length} entr${filtered.length === 1 ? 'y' : 'ies'}
+    </div>
+
+    <div class="admin-table-view" style="overflow-x: auto;">
+      <table style="width: 100%; font-size: 0.9rem; border-collapse: collapse; background: var(--surface); border-radius: var(--radius); overflow: hidden;">
+        <thead>
+          <tr>
+            <th style="padding: 12px 8px; text-align: left; background: var(--surface-alt); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); letter-spacing: 0.03em;">When</th>
+            <th style="padding: 12px 8px; text-align: left; background: var(--surface-alt); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); letter-spacing: 0.03em;">User</th>
+            <th style="padding: 12px 8px; text-align: center; background: var(--surface-alt); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); letter-spacing: 0.03em;">Action</th>
+            <th style="padding: 12px 8px; text-align: left; background: var(--surface-alt); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); letter-spacing: 0.03em;">Target ID</th>
+          </tr>
+        </thead>
+        <tbody>${rowsHtml}</tbody>
+      </table>
+    </div>
+    <div class="admin-card-view admin-card-list">${cardsHtml}</div>
+  `;
 }
 
 // ============================================================================
