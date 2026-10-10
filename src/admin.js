@@ -195,10 +195,63 @@ function renderOverview() {
     return;
   }
 
+  const rowsHtml = active
+    .map(
+      (t) => `
+    <tr style="border-top: 1px solid var(--border-light);">
+      <td style="padding: 12px 8px;">
+        <div style="font-weight: 500;">${escapeHtml(t.name || t.email)}</div>
+        <div style="font-size: 0.75rem; color: var(--text-light);">${escapeHtml(t.email)}</div>
+      </td>
+      <td style="padding: 12px 8px; text-align: center;">${t.stats.classes}</td>
+      <td style="padding: 12px 8px; text-align: center;">${t.stats.students}</td>
+      <td style="padding: 12px 8px; text-align: center;">${t.stats.worklogs}</td>
+      <td style="padding: 12px 8px; text-align: center; font-weight: 600; color: var(--primary);">${t.stats.hours}</td>
+      <td style="padding: 12px 8px; text-align: center;">${t.stats.marks}</td>
+      <td style="padding: 12px 8px; text-align: center;">${t.stats.media}</td>
+      <td style="padding: 12px 8px; text-align: center; font-size: 0.8rem; color: var(--text-light);">${formatRelative(t.lastSeenAt)}</td>
+    </tr>
+  `
+    )
+    .join('');
+
+  const cardsHtml = active
+    .map(
+      (t) => `
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <div class="admin-card-avatar">
+          ${
+            t.picture
+              ? `<img src="${escapeHtml(t.picture)}" alt="" onerror="this.style.display='none'; this.parentNode.textContent='${escapeHtml((t.name || '?').charAt(0).toUpperCase())}';">`
+              : escapeHtml((t.name || t.email || '?').charAt(0).toUpperCase())
+          }
+        </div>
+        <div style="min-width: 0; flex: 1;">
+          <div class="admin-card-title">${escapeHtml(t.name || t.email)}</div>
+          <div class="admin-card-subtitle">${escapeHtml(t.email)}</div>
+          <div class="admin-card-subtitle" style="color: var(--text-muted); margin-top: 2px;">Last seen ${formatRelative(t.lastSeenAt)}</div>
+        </div>
+      </div>
+
+      <div class="admin-card-stats">
+        <div><div class="value">${t.stats.classes}</div><div class="label">Classes</div></div>
+        <div><div class="value">${t.stats.students}</div><div class="label">Trainees</div></div>
+        <div><div class="value">${t.stats.hours}</div><div class="label">Hours</div></div>
+        <div><div class="value">${t.stats.worklogs}</div><div class="label">Sessions</div></div>
+        <div><div class="value">${t.stats.marks}</div><div class="label">Marks</div></div>
+        <div><div class="value">${t.stats.media}</div><div class="label">Evidence</div></div>
+      </div>
+    </div>
+  `
+    )
+    .join('');
+
   teacherList.innerHTML = `
-    <div style="overflow-x: auto;">
+    <!-- Desktop table -->
+    <div class="admin-table-view" style="overflow-x: auto;">
       <table style="width: 100%; font-size: 0.9rem; border-collapse: collapse;">
-                <thead>
+        <thead>
           <tr style="text-align: left; color: var(--text-light); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.03em;">
             <th style="padding: 10px 8px;">Teacher</th>
             <th style="padding: 10px 8px; text-align: center;">Classes</th>
@@ -210,28 +263,13 @@ function renderOverview() {
             <th style="padding: 10px 8px; text-align: center;">Last seen</th>
           </tr>
         </thead>
-        <tbody>
-                    ${active
-                      .map(
-                        (t) => `
-            <tr style="border-top: 1px solid var(--border-light);">
-              <td style="padding: 12px 8px;">
-                <div style="font-weight: 500;">${escapeHtml(t.name || t.email)}</div>
-                <div style="font-size: 0.75rem; color: var(--text-light);">${escapeHtml(t.email)}</div>
-              </td>
-              <td style="padding: 12px 8px; text-align: center;">${t.stats.classes}</td>
-              <td style="padding: 12px 8px; text-align: center;">${t.stats.students}</td>
-              <td style="padding: 12px 8px; text-align: center;">${t.stats.worklogs}</td>
-              <td style="padding: 12px 8px; text-align: center; font-weight: 600; color: var(--primary);">${t.stats.hours}</td>
-              <td style="padding: 12px 8px; text-align: center;">${t.stats.marks}</td>
-              <td style="padding: 12px 8px; text-align: center;">${t.stats.media}</td>
-              <td style="padding: 12px 8px; text-align: center; font-size: 0.8rem; color: var(--text-light);">${formatRelative(t.lastSeenAt)}</td>
-            </tr>
-          `
-                      )
-                      .join('')}
-        </tbody>
+        <tbody>${rowsHtml}</tbody>
       </table>
+    </div>
+
+    <!-- Mobile cards -->
+    <div class="admin-card-view admin-card-list">
+      ${cardsHtml}
     </div>
   `;
 }
@@ -278,8 +316,12 @@ function renderTeachers() {
 
   const isLastCoordinator = countActiveCoordinators() <= 1;
 
+  const rowsHtml = filtered.map((t) => teacherRowHtml(t, isLastCoordinator)).join('');
+  const cardsHtml = filtered.map((t) => teacherCardHtml(t, isLastCoordinator)).join('');
+
   container.innerHTML = `
-    <div style="overflow-x: auto;">
+    <!-- Desktop table -->
+    <div class="admin-table-view" style="overflow-x: auto;">
       <table style="width: 100%; font-size: 0.9rem; border-collapse: collapse; background: var(--surface); border-radius: var(--radius); overflow: hidden;">
         <thead>
           <tr>
@@ -290,10 +332,13 @@ function renderTeachers() {
             <th style="padding: 12px; text-align: center; background: var(--surface-alt); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); letter-spacing: 0.03em;">Last seen</th>
           </tr>
         </thead>
-        <tbody>
-          ${filtered.map((t) => teacherRowHtml(t, isLastCoordinator)).join('')}
-        </tbody>
+        <tbody>${rowsHtml}</tbody>
       </table>
+    </div>
+
+    <!-- Mobile cards -->
+    <div class="admin-card-view admin-card-list">
+      ${cardsHtml}
     </div>
   `;
 
@@ -387,6 +432,67 @@ function teacherRowHtml(t, isLastCoordinator) {
         ${formatRelative(t.lastSeenAt)}
       </td>
     </tr>
+  `;
+}
+
+function teacherCardHtml(t, isLastCoordinator) {
+  const isSelf = t.uid === user.uid;
+  const activeBool = t.active === true || String(t.active).toLowerCase() === 'true';
+  const initials = String(t.name || t.email || '?')
+    .split(/[\s@]/)[0]
+    .charAt(0)
+    .toUpperCase();
+
+  const demoteDisabled = isSelf && t.role === 'coordinator' && isLastCoordinator;
+
+  const teacherStats = stats?.teachers?.find((x) => x.uid === t.uid);
+  const statsLine = teacherStats
+    ? `${teacherStats.stats.classes} class${teacherStats.stats.classes === 1 ? '' : 'es'} · ${teacherStats.stats.students} trainee${teacherStats.stats.students === 1 ? '' : 's'} · ${teacherStats.stats.hours}h`
+    : 'No activity yet';
+
+  return `
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <div class="admin-card-avatar">
+          ${
+            t.picture
+              ? `<img src="${escapeHtml(t.picture)}" alt="" onerror="this.style.display='none'; this.parentNode.textContent='${escapeHtml(initials)}';">`
+              : escapeHtml(initials)
+          }
+        </div>
+        <div style="min-width: 0; flex: 1;">
+          <div class="admin-card-title">
+            ${escapeHtml(t.name || t.email.split('@')[0])}
+            ${isSelf ? `<span class="badge primary" style="font-size: 0.65rem;">you</span>` : ''}
+          </div>
+          <div class="admin-card-subtitle">${escapeHtml(t.email)}</div>
+          <div class="admin-card-subtitle" style="color: var(--text-muted); margin-top: 2px;">
+            ${statsLine} · Last seen ${formatRelative(t.lastSeenAt)}
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-card-actions">
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <select data-role-select data-uid="${escapeHtml(t.uid)}"
+                  ${demoteDisabled ? 'disabled title="Cannot demote the last coordinator"' : ''}
+                  style="${demoteDisabled ? 'opacity: 0.6; cursor: not-allowed;' : ''}">
+            <option value="teacher" ${t.role === 'teacher' ? 'selected' : ''}>👩‍🏫 Teacher</option>
+            <option value="coordinator" ${t.role === 'coordinator' ? 'selected' : ''}>🎯 Coordinator</option>
+          </select>
+        </div>
+
+        <label style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.8rem;">
+          <input type="checkbox" data-active-toggle data-uid="${escapeHtml(t.uid)}"
+                 ${activeBool ? 'checked' : ''}
+                 ${isSelf ? 'disabled title="You cannot disable your own account"' : ''}
+                 style="width: 18px; height: 18px; accent-color: var(--primary);">
+          <span class="badge ${activeBool ? 'success' : 'danger'}" style="font-size: 0.7rem;">
+            ${activeBool ? 'Active' : 'Disabled'}
+          </span>
+        </label>
+      </div>
+    </div>
   `;
 }
 
