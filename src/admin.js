@@ -65,7 +65,7 @@ let audit = [];
       api.call('listStudents').catch(() => []),
       api.call('listAuditLog').catch(() => []),
     ]);
-    teachers = u || [];
+    teachers = (u || []).map((row) => ({ ...row, uid: row.id }));
     classes = c || [];
     trainees = t || [];
     audit = a || [];
@@ -109,11 +109,11 @@ function wireEvents() {
         s.classList.toggle('active', s.id === 'admin-' + tab);
       });
 
-      // Lazy render on first visit
-      if (tab === 'teachers' && !teachers.length) renderTeachers();
-      if (tab === 'classes' && !classes.length) renderClasses();
-      if (tab === 'trainees' && !trainees.length) renderTrainees();
-      if (tab === 'audit' && !audit.length) renderAudit();
+      // Render on every visit (cheap and always up-to-date)
+      if (tab === 'teachers') renderTeachers();
+      if (tab === 'classes') renderClasses();
+      if (tab === 'trainees') renderTrainees();
+      if (tab === 'audit') renderAudit();
     });
   });
 
