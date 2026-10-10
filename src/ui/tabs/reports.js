@@ -454,38 +454,67 @@ function reportTrainee() {
     ${
       rows.length
         ? `
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>ID</th>
-            <th>Marks</th>
-            <th>Avg</th>
-            <th>✅</th>
-            <th>⏰</th>
-            <th>❌</th>
-            <th>Rate</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${rows
-            .map(
-              (t) => `
+      <!-- Desktop table -->
+      <div class="reports-table-view">
+        <table>
+          <thead>
             <tr>
-              <td>${escapeHtml(t.name || '')}</td>
-              <td>${escapeHtml(t.studentId || '')}</td>
-              <td>${t.marks.length}</td>
-              <td>${t.avg != null ? t.avg + '%' : '—'}</td>
-              <td>${t.attendance.present}</td>
-              <td>${t.attendance.late}</td>
-              <td>${t.attendance.absent}</td>
-              <td>${t.rate != null ? t.rate + '%' : '—'}</td>
+              <th>Name</th>
+              <th>ID</th>
+              <th>Marks</th>
+              <th>Avg</th>
+              <th>✅</th>
+              <th>⏰</th>
+              <th>❌</th>
+              <th>Rate</th>
             </tr>
-          `
-            )
-            .join('')}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            ${rows
+              .map(
+                (t) => `
+              <tr>
+                <td>${escapeHtml(t.name || '')}</td>
+                <td>${escapeHtml(t.studentId || '')}</td>
+                <td>${t.marks.length}</td>
+                <td>${t.avg != null ? t.avg + '%' : '—'}</td>
+                <td>${t.attendance.present}</td>
+                <td>${t.attendance.late}</td>
+                <td>${t.attendance.absent}</td>
+                <td>${t.rate != null ? t.rate + '%' : '—'}</td>
+              </tr>
+            `
+              )
+              .join('')}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mobile cards -->
+      <div class="reports-card-view">
+        ${rows
+          .map(
+            (t) => `
+          <div class="report-trainee-card">
+            <div class="report-trainee-header">
+              <div>
+                <div class="report-trainee-name">${escapeHtml(t.name || '—')}</div>
+                <div class="report-trainee-id">${escapeHtml(t.studentId || '')}</div>
+              </div>
+              ${t.rate != null ? `<div class="report-trainee-rate">${t.rate}%</div>` : ''}
+            </div>
+            <div class="report-trainee-stats">
+              <div><span class="label">Marks</span><span class="value">${t.marks.length}</span></div>
+              <div><span class="label">Avg</span><span class="value">${t.avg != null ? t.avg + '%' : '—'}</span></div>
+              <div><span class="label">✅ Present</span><span class="value">${t.attendance.present}</span></div>
+              <div><span class="label">⏰ Late</span><span class="value">${t.attendance.late}</span></div>
+              <div><span class="label">❌ Absent</span><span class="value">${t.attendance.absent}</span></div>
+            </div>
+          </div>
+        `
+          )
+          .join('')}
+      </div>
     `
         : '<p>No trainees enrolled.</p>'
     }

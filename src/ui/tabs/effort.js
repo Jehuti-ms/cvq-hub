@@ -213,11 +213,11 @@ function renderByClass(filteredWorklogs) {
   els.byClass.innerHTML = `
     <table style="width: 100%; font-size: var(--text-sm); border-collapse: collapse;">
       <thead>
-        <tr style="text-align: left; color: var(--text-light); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.03em;">
-          <th style="padding: 8px 4px;">Class</th>
-          <th style="padding: 8px 4px; text-align: right;">Hours</th>
-          <th style="padding: 8px 4px; text-align: right;">Sessions</th>
-          <th style="padding: 8px 4px; text-align: right;">Entries</th>
+        <tr style="color: var(--text-light); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.03em;">
+          <th style="padding: 8px 4px; text-align: left;">Class</th>
+          <th style="padding: 8px 4px; text-align: center;">Hours</th>
+          <th style="padding: 8px 4px; text-align: center;">Sessions</th>
+          <th style="padding: 8px 4px; text-align: center;">Entries</th>
         </tr>
       </thead>
       <tbody>
@@ -225,12 +225,12 @@ function renderByClass(filteredWorklogs) {
           .map(
             (r) => `
           <tr style="border-top: 1px solid var(--border-light);">
-            <td style="padding: 10px 4px; font-weight: var(--weight-medium);">
+            <td style="padding: 10px 4px; font-weight: var(--weight-medium); text-align: left;">
               ${escapeHtml(className(r.id))}
             </td>
-            <td style="padding: 10px 4px; text-align: right;">${fmtNum(r.hours, 1)}</td>
-            <td style="padding: 10px 4px; text-align: right;">${r.sessions}</td>
-            <td style="padding: 10px 4px; text-align: right; color: var(--text-light);">${r.entries}</td>
+            <td style="padding: 10px 4px; text-align: center;">${fmtNum(r.hours, 1)}</td>
+            <td style="padding: 10px 4px; text-align: center;">${r.sessions}</td>
+            <td style="padding: 10px 4px; text-align: center; color: var(--text-light);">${r.entries}</td>
           </tr>
         `
           )
@@ -268,10 +268,10 @@ function renderByMonth(filteredWorklogs) {
   els.byMonth.innerHTML = `
     <table style="width: 100%; font-size: var(--text-sm); border-collapse: collapse;">
       <thead>
-        <tr style="text-align: left; color: var(--text-light); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.03em;">
-          <th style="padding: 8px 4px;">Month</th>
-          <th style="padding: 8px 4px; text-align: right;">Hours</th>
-          <th style="padding: 8px 4px; text-align: right;">Sessions</th>
+        <tr style="color: var(--text-light); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.03em;">
+          <th style="padding: 8px 4px; text-align: left;">Month</th>
+          <th style="padding: 8px 4px; text-align: center;">Hours</th>
+          <th style="padding: 8px 4px; text-align: center;">Sessions</th>
         </tr>
       </thead>
       <tbody>
@@ -279,9 +279,9 @@ function renderByMonth(filteredWorklogs) {
           .map(
             (r) => `
           <tr style="border-top: 1px solid var(--border-light);">
-            <td style="padding: 10px 4px; font-weight: var(--weight-medium);">${formatMonth(r.month)}</td>
-            <td style="padding: 10px 4px; text-align: right;">${fmtNum(r.hours, 1)}</td>
-            <td style="padding: 10px 4px; text-align: right;">${r.sessions}</td>
+            <td style="padding: 10px 4px; font-weight: var(--weight-medium); text-align: left;">${formatMonth(r.month)}</td>
+            <td style="padding: 10px 4px; text-align: center;">${fmtNum(r.hours, 1)}</td>
+            <td style="padding: 10px 4px; text-align: center;">${r.sessions}</td>
           </tr>
         `
           )

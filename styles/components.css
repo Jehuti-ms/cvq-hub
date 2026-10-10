@@ -1441,3 +1441,101 @@ button[type='submit']:disabled {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
+
+/* ==========================================================================
+   Reports — responsive table/card views
+   ========================================================================== */
+
+/* Hide card view on desktop */
+@media (min-width: 768px) {
+  .reports-card-view {
+    display: none !important;
+  }
+}
+
+/* Hide table view on mobile */
+@media (max-width: 767px) {
+  .reports-table-view {
+    display: none !important;
+  }
+}
+
+/* Trainee report card (mobile only) */
+.report-trainee-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 10px;
+}
+
+.report-trainee-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.report-trainee-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.report-trainee-id {
+  font-size: 0.75rem;
+  color: var(--text-light);
+  font-family: var(--font-mono);
+}
+
+.report-trainee-rate {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.report-trainee-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.report-trainee-stats > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.report-trainee-stats .label {
+  font-size: 0.7rem;
+  color: var(--text-light);
+  margin-bottom: 2px;
+}
+
+.report-trainee-stats .value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* The reports-printable wrapper is white — make sure cards read well */
+.reports-printable .report-trainee-card {
+  background: #f9fafb;
+  border-color: #e5e7eb;
+}
+
+/* Print: hide cards, show table */
+@media print {
+  .reports-card-view {
+    display: none !important;
+  }
+  .reports-table-view {
+    display: block !important;
+  }
+}
